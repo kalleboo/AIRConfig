@@ -4,6 +4,8 @@ FSSpec		gPrefsFileSpec;
 
 #define hasSeenHelpPrefID	128
 #define headlessModePrefID	129
+#define inputSourcePrefID	130
+#define inputURLPrefID		131
 
 #define inputFileAlisID		201
 #define outputFileAlisID	202
@@ -48,12 +50,15 @@ Boolean FindPreferences(void)
 #pragma segment Main
 void LoadPreferences(void)
 {
-	OSErr		error;
 	short		fileRef;
 	Handle      resHandle;
-	Boolean		wasChanged;
 	
 	gPrefs.hasSeenHelp = false;
+	gPrefs.headlessMode = false;
+	gPrefs.inputSource = kInputSourceFile;
+	gPrefs.inputFileAlias = nil;
+	gPrefs.outputFileAlias = nil;
+	gPrefs.inputURL[0] = 0;
 	
 	if (!FindPreferences()) {
 		return;
@@ -74,20 +79,28 @@ void LoadPreferences(void)
 		ReleaseResource(resHandle);
 	}
 	
+	resHandle = Get1Resource('pref', inputSourcePrefID);
+	if (resHandle != NULL) {
+		gPrefs.inputSource = **resHandle;
+		ReleaseResource(resHandle);
+	}
+	
+	resHandle = Get1Resource('pref', inputURLPrefID);
+	if (resHandle != NULL) {
+		BlockMove(*resHandle, &gPrefs.inputURL, GetHandleSize(resHandle));
+		ReleaseResource(resHandle);
+	}
+	
 	resHandle = Get1Resource('alis', inputFileAlisID);
 	if (resHandle != NULL) {
-		error = ResolveAlias(nil, (AliasHandle)resHandle, &gState.inFileSpec, &wasChanged);
-		if (error != noErr || !LoadInputFile()) {
-			AbortInputFile();
-		}
+		gPrefs.inputFileAlias = (AliasHandle)resHandle;
+		DetachResource(resHandle);
 	}
 	
 	resHandle = Get1Resource('alis', outputFileAlisID);
 	if (resHandle != NULL) {
-		error = ResolveAlias(nil, (AliasHandle)resHandle, &gState.outFileSpec, &wasChanged);
-		if (error != noErr || !LoadOutputFile()) {
-			AbortOutputFile();
-		}
+		gPrefs.outputFileAlias = (AliasHandle)resHandle;
+		DetachResource(resHandle);
 	}
 	
 	CloseResFile(fileRef);
@@ -96,11 +109,10 @@ void LoadPreferences(void)
 #pragma segment Main
 void SavePreferences(void)
 {
-	OSErr		error;
 	short		fileRef;
 	Handle		writeData;
 	Handle      existingRes;
-	AliasHandle	aliasHandle;
+	Handle		copyHandle;
 	
 	if (!FindPreferences()) {
 		return;
@@ -136,7 +148,41 @@ void SavePreferences(void)
 		RemoveResource(existingRes);
 	}
 	
-	AddResource(writeData, 'pref', headlessModePrefID, "\pheadlessModePrefID");
+	AddResource(writeData, 'pref', headlessModePrefID, "\pheadlessMode");
+	
+	if (ResError() == noErr) {
+		WriteResource(writeData);
+	}
+	
+	
+	//inputSource
+	writeData = NewHandle(1);
+	**writeData = gPrefs.inputSource;
+	
+	existingRes = Get1Resource('pref', inputSourcePrefID);
+	
+	if (existingRes != NULL) {
+		RemoveResource(existingRes);
+	}
+	
+	AddResource(writeData, 'pref', inputSourcePrefID, "\pinputSourcePrefID");
+	
+	if (ResError() == noErr) {
+		WriteResource(writeData);
+	}
+	
+	
+	//inputURL
+	writeData = NewHandle(gPrefs.inputURL[0] + 1);
+	BlockMove(&gPrefs.inputURL, *writeData, GetHandleSize(writeData));
+	
+	existingRes = Get1Resource('pref', inputURLPrefID);
+	
+	if (existingRes != NULL) {
+		RemoveResource(existingRes);
+	}
+	
+	AddResource(writeData, 'pref', inputURLPrefID, "\pinputURL");
 	
 	if (ResError() == noErr) {
 		WriteResource(writeData);
@@ -147,15 +193,14 @@ void SavePreferences(void)
 	existingRes = Get1Resource('alis', inputFileAlisID);
 	RemoveResource(existingRes);
 	
-	if (gState.totalEntries > 0 && gState.inFileSpec.vRefNum != 0) {
-		error = NewAlias(NULL, &gState.inFileSpec, &aliasHandle);
+	if (gPrefs.inputFileAlias != nil) {
+		copyHandle = (Handle)gPrefs.inputFileAlias;
+		HandToHand(&copyHandle);
 		
-		if (error == noErr && writeData != NULL) {
-			AddResource((Handle)aliasHandle, 'alis', inputFileAlisID, "\pinputFile");
-			
-			if (ResError() == noErr) {
-				WriteResource((Handle)aliasHandle);
-			}
+		AddResource(copyHandle, 'alis', inputFileAlisID, "\pinputFile");
+		
+		if (ResError() == noErr) {
+			WriteResource(copyHandle);
 		}
 	}
 	
@@ -163,15 +208,14 @@ void SavePreferences(void)
 	existingRes = Get1Resource('alis', outputFileAlisID);
 	RemoveResource(existingRes);
 	
-	if (gState.totalEntries > 0 && gState.outFileSpec.vRefNum != 0) {
-		error = NewAlias(NULL, &gState.outFileSpec, &aliasHandle);
+	if (gPrefs.outputFileAlias != nil) {
+		copyHandle = (Handle)gPrefs.outputFileAlias;
+		HandToHand(&copyHandle);
 		
-		if (error == noErr && writeData != NULL) {
-			AddResource((Handle)aliasHandle, 'alis', outputFileAlisID, "\poutputFile");
-			
-			if (ResError() == noErr) {
-				WriteResource((Handle)aliasHandle);
-			}
+		AddResource(copyHandle, 'alis', outputFileAlisID, "\poutputFile");
+		
+		if (ResError() == noErr) {
+			WriteResource(copyHandle);
 		}
 	}
 	

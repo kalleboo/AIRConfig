@@ -21,10 +21,14 @@ void PickOutputFile( void );
 #define		mwOutputTitle		9
 #define		mwDivider1			10
 #define		mwDivider2			11
-#define		mwInputFilename		12
-#define		mwOutputFilename	13
-#define		mwInputIconBlank	14
-#define		mwOutputIconBlank	15
+#define		mwInputFilename			12
+#define		mwOutputFilename		13
+#define		mwInputIconBlank		14
+#define		mwOutputIconBlank		15
+#define		mwInputRadioFile		16
+#define		mwInputRadioInternet	17
+#define		mwInputIconNoInternet	18
+#define		mwInputIconInternet		19
 
 
 #pragma segment Main
@@ -70,40 +74,74 @@ void ShowMainWindow(void) {
 
 #pragma segment Main
 void UpdateMainWindow(void) {
+	short	iType;
+	Handle	iHandle;
+	Rect	iRect;
+	
 	Boolean		isReady = true;
 	Str255		numStr;
-	Handle		formattedString;
 	Str255		displayString;
 	
+	GetDItem(mainWindow.ptr, mwInputRadioFile, &iType, &iHandle, &iRect);
+	SetCtlValue((ControlHandle)iHandle, gPrefs.inputSource == kInputSourceFile);
 	
-	if (gState.totalEntries == 0) {
-		SetIText(mainWindow.inputStatus, "\p");
+	GetDItem(mainWindow.ptr, mwInputRadioInternet, &iType, &iHandle, &iRect);
+	SetCtlValue((ControlHandle)iHandle, gPrefs.inputSource == kInputSourceURL);
+	
+	if (gPrefs.inputSource == kInputSourceFile) {
+		if (gState.inputIsValid) {
+			NumToString(gState.totalEntries, numStr);
+			StringInsert("\pLoaded ^0 entries", numStr, displayString);
 		
-		SetCTitle(mainWindow.inputButton, "\pOpen...");
-		HideDItem(mainWindow.ptr, mwInputIcon);
-		ShowDItem(mainWindow.ptr, mwInputIconBlank);
-		isReady = false;
-	} else {
-		NumToString(gState.totalEntries, numStr);
-		formattedString = StringInsert("\pLoaded ^0 entries", numStr);
-		BlockMove(*formattedString, displayString, GetHandleSize(formattedString));
+			SetIText(mainWindow.inputStatus, displayString);
 		
-		SetIText(mainWindow.inputStatus, displayString);
+			SetCTitle(mainWindow.inputButton, "\pClose");
+			HideDItem(mainWindow.ptr, mwInputIconNoInternet);
+	 		HideDItem(mainWindow.ptr, mwInputIconInternet);
+			ShowDItem(mainWindow.ptr, mwInputIcon);
+	 		HideDItem(mainWindow.ptr, mwInputIconBlank);
+		} else {
+			SetIText(mainWindow.inputStatus, "\p");
 		
-		SetCTitle(mainWindow.inputButton, "\pClose");
-		ShowDItem(mainWindow.ptr, mwInputIcon);
-		HideDItem(mainWindow.ptr, mwInputIconBlank);
+			SetCTitle(mainWindow.inputButton, "\pOpen File...");
+			HideDItem(mainWindow.ptr, mwInputIconNoInternet);
+			HideDItem(mainWindow.ptr, mwInputIconInternet);
+			HideDItem(mainWindow.ptr, mwInputIcon);
+			ShowDItem(mainWindow.ptr, mwInputIconBlank);
+			isReady = false;
+		}
+
+	} else if (gPrefs.inputSource == kInputSourceURL) {
+		if (gState.inputIsValid) {
+			NumToString(gState.totalEntries, numStr);
+			StringInsert("\pLoaded ^0 entries", numStr, displayString);
+		
+			SetIText(mainWindow.inputStatus, displayString);
+		
+			SetCTitle(mainWindow.inputButton, "\pOpen URL...");
+			HideDItem(mainWindow.ptr, mwInputIconNoInternet);
+			ShowDItem(mainWindow.ptr, mwInputIconInternet);
+			HideDItem(mainWindow.ptr, mwInputIcon);
+			HideDItem(mainWindow.ptr, mwInputIconBlank);
+		} else {
+			SetIText(mainWindow.inputStatus, "\p");
+			SetCTitle(mainWindow.inputButton, "\pOpen URL...");
+			ShowDItem(mainWindow.ptr, mwInputIconNoInternet);
+			HideDItem(mainWindow.ptr, mwInputIconInternet);
+			HideDItem(mainWindow.ptr, mwInputIcon);
+			HideDItem(mainWindow.ptr, mwInputIconBlank);
+			isReady = false;
+		}
 	}
 	
-	if (gState.outFileSpec.vRefNum == 0) {
+	if (gState.outputIsValid == false) {
 		SetIText(mainWindow.outputStatus, "\p");
-		SetCTitle(mainWindow.outputButton, "\pOpen...");
+		SetCTitle(mainWindow.outputButton, "\pOpen File...");
 		HideDItem(mainWindow.ptr, mwOutputIcon);
 		ShowDItem(mainWindow.ptr, mwOutputIconBlank);
 		isReady = false;
 	} else {
-		formattedString = StringInsert("\pFound IP tunnel on \"^0\"", gState.resourceName);
-		BlockMove(*formattedString, displayString, GetHandleSize(formattedString));
+		StringInsert("\pFound IP tunnel on \"^0\"", gState.resourceName, displayString);
 		
 		SetIText(mainWindow.outputStatus, displayString);
 		SetCTitle(mainWindow.outputButton, "\pClose");
@@ -126,21 +164,54 @@ void RedrawMainWindow(void) {
 
 #pragma segment Main
 pascal void DrawFilename(WindowPtr theWindow, short itemNo) {
+	OSErr		error;
+	
 	short		iType;
 	Handle		iHandle;
 	Rect		iRect;
 	
 	short		length = 0;
+	Str63		errorName = "\p<filename unknown>";
 	Str63		defaultName = "\p<no file open>";
+	Str63		defaultNameURL = "\p<url not loaded>";
+	Str63		fetchName = "\p";
 	Handle		fileNameHandle;
 	
-	if (itemNo == mwInputFilename && gState.inFileSpec.vRefNum != 0) {
-		length = gState.inFileSpec.name[0];
-		PtrToHand(&gState.inFileSpec.name[1], &fileNameHandle, length);
+	Str255		urlHost;
+	Str255		urlPath;
+	
+	if (itemNo == mwInputFilename && gPrefs.inputSource == kInputSourceURL) {
+	
+		if (gState.inputIsValid) {
+			ParseURL(urlHost, urlPath);
+			length = urlHost[0];
+			PtrToHand(&urlHost[1], &fileNameHandle, length);		
+		} else {
+			length = defaultNameURL[0];
+			PtrToHand(&defaultNameURL[1], &fileNameHandle, length);
+		}
 		
-	} else if (itemNo == mwOutputFilename && gState.outFileSpec.vRefNum != 0) {
-		length = gState.outFileSpec.name[0];
-		PtrToHand(&gState.outFileSpec.name[1], &fileNameHandle, length);
+	} else if (itemNo == mwInputFilename && gState.inputIsValid && gPrefs.inputFileAlias != nil) {
+		error = GetAliasInfo(gPrefs.inputFileAlias, asiAliasName, fetchName);
+		
+		if (error == noErr) {
+			length = fetchName[0];
+			PtrToHand(&fetchName[1], &fileNameHandle, length);
+		} else {
+			length = errorName[0];
+			PtrToHand(&errorName[1], &fileNameHandle, length);
+		}
+		
+	} else if (itemNo == mwOutputFilename && gState.outputIsValid) {
+		error = GetAliasInfo(gPrefs.outputFileAlias, asiAliasName, fetchName);
+		
+		if (error == noErr) {
+			length = fetchName[0];
+			PtrToHand(&fetchName[1], &fileNameHandle, length);
+		} else {
+			length = errorName[0];
+			PtrToHand(&errorName[1], &fileNameHandle, length);
+		}
 
 	} else {
 		length = defaultName[0];
@@ -165,24 +236,42 @@ pascal void DrawFilename(WindowPtr theWindow, short itemNo) {
 void DoMainWindowEvent(short whichItem) {
 	switch (whichItem) {
 		case mwInputButton:
-			if (gState.inFileSpec.vRefNum == 0) {
-				PickInputFile();
-			} else {
+			if (gPrefs.inputSource == kInputSourceURL) {
+				ShowOpenURLWindow();
+			} else if (gState.inputIsValid) {
 				AbortInputFile();
+			} else {
+				PickInputFile();
 			}
 			break;
 			
 		case mwOutputButton:
-			if (gState.outFileSpec.vRefNum == 0 ) {
-				PickOutputFile();
-			} else {
+			if (gState.outputIsValid) {
 				AbortOutputFile();
+			} else {
+				PickOutputFile();
 			}
 			break;
 			
 		case mwDoItButton:
 			if (WriteOutputFile()) {
-				AlertInfoMessage("\pSuccessfully saved changes.", noErr);
+				AlertInfoMessage("\pChanges successfully written!", noErr);
+			}
+			break;
+		
+		case mwInputRadioFile:
+			if (gPrefs.inputSource == kInputSourceURL) {
+				gPrefs.inputSource = kInputSourceFile;
+				LoadCurrentInput();
+				SavePreferences();
+			}
+			break;
+			
+		case mwInputRadioInternet:
+			if (gPrefs.inputSource == kInputSourceFile) {
+				gPrefs.inputSource = kInputSourceURL;
+				LoadCurrentInput();
+				SavePreferences();
 			}
 			break;
 	}
@@ -196,6 +285,7 @@ void DoMainWindowEvent(short whichItem) {
 #pragma segment Main
 void PickInputFile(void)
 {
+	OSErr					error;
 	SFTypeList				typeList;
 	StandardFileReply		reply;
 	
@@ -204,19 +294,22 @@ void PickInputFile(void)
 	if (!reply.sfGood) {
 		return;
 	}
+
+	error = NewAlias(NULL, &reply.sfFile, &gPrefs.inputFileAlias);
 	
-	gState.inFileSpec = reply.sfFile;
-	
-	if (LoadInputFile()) {
-		SavePreferences();
-	} else {
+	if (error != noErr) {
 		AbortInputFile();
 	}
+	
+	LoadCurrentInput();
+	
+	SavePreferences();
 }
 
 #pragma segment Main
 void PickOutputFile(void)
 {
+	OSErr					error;
 	SFTypeList				typeList;
 	StandardFileReply		reply;
 	
@@ -226,13 +319,15 @@ void PickOutputFile(void)
 		return;
 	}
 	
-	gState.outFileSpec = reply.sfFile;
+	error = NewAlias(NULL, &reply.sfFile, &gPrefs.outputFileAlias);
 	
-	if (LoadOutputFile()) {
-		SavePreferences();
-	} else {
+	if (error != noErr) {
 		AbortOutputFile();
 	}
+	
+	LoadCurrentOutput();
+	
+	SavePreferences();
 }
 
 

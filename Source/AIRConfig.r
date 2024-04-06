@@ -18,10 +18,10 @@ Include "Icon.rsrc";
 Include "Dialogs.rsrc";
 
 resource 'vers' (1) {
-	0x00, 0x04, release, 0x00,
+	0x01, 0x00, release, 0x00,
 	verUS,
-	"0.4",
-	"0.4 by @kalleboo@bitbang.social"
+	"1.0",
+	"1.0 by @kalleboo@bitbang.social"
 };
 
 
@@ -58,26 +58,14 @@ resource 'MENU' (mFile, preload) {
 	MenuItem12,				/* enable Quit only, program enables others */
 	enabled, "File",
 	{
-		"New",
-			noicon, "N", nomark, plain;
-		"Open",
+		"Open File...",
 			noicon, "O", nomark, plain;
 		"-",
 			noicon, nokey, nomark, plain;
 		"Close",
 			noicon, "W", nomark, plain;
-		"Save",
+		"Convert",
 			noicon, "S", nomark, plain;
-		"Save As…",
-			noicon, nokey, nomark, plain;
-		"Revert",
-			noicon, nokey, nomark, plain;
-		"-",
-			noicon, nokey, nomark, plain;
-		"Page Setup…",
-			noicon, nokey, nomark, plain;
-		"Print…",
-			noicon, nokey, nomark, plain;
 		"-",
 			noicon, nokey, nomark, plain;
 		"Quit",

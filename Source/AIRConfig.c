@@ -35,6 +35,8 @@
 #include <Packages.h>
 #include <Traps.h>
 #include <Balloons.h>
+#include <CursorCtl.h>
+#include <string.h>
 
 #include "AIRConfig.h"		/* bring in all the #defines for Sample */
 
@@ -62,12 +64,19 @@ AppState 		gState;
 AppPrefs		gPrefs;
 MainWindow 		mainWindow;
 DialogPtr		prefsWindowPtr;
+DialogPtr		openURLWindowPtr;
+DialogPtr		busyWindowPtr;
 
 
 
 /* Here are declarations for all of the C routines. In MPW 3.0 and later we can use
    actual prototypes for parameter type checking. */
 
+void SetInputString(char *newInputString, unsigned long length);
+void ClearInputString(void);
+
+void LoadCurrentInput(void);
+void LoadCurrentOutput(void);
 
 void AbortInputFile(void);
 void AbortOutputFile(void);
@@ -90,7 +99,17 @@ Boolean IsAppWindow( WindowPtr window );
 Boolean IsDAWindow( WindowPtr window );
 Boolean TrapAvailable( short tNumber, TrapType tType );
 
+/* this routine would normally be a callback for giving time to background
+	apps */
 
+Cursor watchCurs;
+
+Boolean GiveTime(short sleepTime)
+{
+	//SetCursor(&watchCurs);
+	short x = sleepTime;
+	return true;
+}
 
 
 Boolean LoadInputFile( void );
@@ -107,12 +126,15 @@ Boolean IsDelimiter(char c);
 #include "Util.c"
 #include "Errors.c"
 #include "Preferences.c"
+#include "HTTP.c"
+#include "BusyDialog.c";
+#include "OpenURLWindow.c";
 #include "MainWindow.c"
 #include "RouterConfig.c"
 #include "Help.c"
 #include "PreferencesWindow.c";
 
-
+ 
 
 /* Define HiWrd and LoWrd macros for efficiency. */
 #define HiWrd(aLong)	(((aLong) >> 16) & 0xFFFF)
@@ -147,16 +169,19 @@ void main(void)
 	
 	UnloadSeg((Ptr) Initialize);	/* note that Initialize must not be in Main! */
 	
-	if (isOptionKeyPressed()) {
+	if (isOptionKeyPressed()) { 
 		gPrefs.hasSeenHelp = true;
 		SavePreferences();
 	} else {
 		LoadPreferences();
 	}
 	
+	LoadCurrentInput();
+	LoadCurrentOutput();
+	
 	if (gPrefs.headlessMode) {
-		if (gState.inFileSpec.vRefNum != 0
-			&& gState.inFileSpec.vRefNum != 0
+		if (gState.inputIsValid
+			&& gState.outputIsValid
 			&& gState.totalEntries > 0
 			&& WriteOutputFile()) {
 			
@@ -174,15 +199,58 @@ void main(void)
 		ShowHelpDialog();
 	}
 	
+	//HTTPTest();
+	
 	EventLoop();					/* call the main event loop */
 }
 
 
+#pragma segment Main 
+void LoadCurrentInput(void) {
+	gState.inputIsValid = false;
+	ClearInputString();
+	gState.totalEntries = 0;
+	gState.totalTextLength = 0;
+	
+	ShowLoadingBusyDialog();
+	
+	if (gPrefs.inputSource == kInputSourceFile) {
+		gState.inputIsValid = LoadInputFile() && ParseInput();
+		
+		if (!gState.inputIsValid) {
+			AbortInputFile();
+		}
+		
+	} else if (gPrefs.inputSource == kInputSourceURL) {
+		gState.inputIsValid = LoadInputURL() && ParseInput();
+		HideBusyDialog();
+		
+		if (!gState.inputIsValid) {
+			gState.inputIsValid = false;
+			ClearInputString();
+			gState.totalEntries = 0;
+			gState.totalTextLength = 0;
+		}
+	}
+	
+	HideBusyDialog();
+}
+
+#pragma segment Main 
+void LoadCurrentOutput(void) {
+	gState.outputIsValid = LoadOutputFile();
+	
+	if (!gState.outputIsValid) {
+		AbortOutputFile();
+	}
+}
+
 
 #pragma segment Main
 void AbortInputFile(void) {
-	gState.inFileSpec.vRefNum = 0;
-	gState.inputString = nil;
+	gState.inputIsValid = false;
+	gPrefs.inputFileAlias = nil;
+	ClearInputString();
 	gState.totalEntries = 0;
 	gState.totalTextLength = 0;
 	
@@ -192,13 +260,32 @@ void AbortInputFile(void) {
 
 #pragma segment Main
 void AbortOutputFile(void) {
-	gState.outFileSpec.vRefNum = 0;
+	gState.outputIsValid = false;
+	gPrefs.outputFileAlias = nil;
 	gState.resourceId = 0;
 	gState.resourceName[0] = 0;
 	
 	SavePreferences();
 }
 
+#pragma segment Main
+void SetInputString(char *newInputString, unsigned long length) {
+	ClearInputString();
+	
+	gState.loadedInputString = NewHandle(length);
+	
+	HLock(gState.loadedInputString);
+	BlockMove(newInputString, *gState.loadedInputString, length);
+	HUnlock(gState.loadedInputString);
+}
+
+#pragma segment Main
+void ClearInputString(void) {
+	if (gState.loadedInputString == nil) { return; }
+	
+	DisposHandle(gState.loadedInputString);
+	gState.loadedInputString = nil;
+}
 
 #pragma segment Main
 void EventLoop(void)
@@ -251,6 +338,8 @@ void DoEvent(EventRecord *event)
 				DoMainWindowEvent(whichItem);
 			} else if (whichDialog == prefsWindowPtr) {
 				DoPrefsWindowEvent(whichItem);
+			} else if (whichDialog == openURLWindowPtr) {
+				DoOpenURLWindowEvent(whichItem);
 			}
 		}
 	}
@@ -445,8 +534,22 @@ void AdjustMenus(void)
 	menu = GetMenuHandle(mFile);
 	if ( IsDAWindow(window) )		/* we can allow desk accessories to be closed from the menu */
 		EnableItem(menu, iClose);
-	else
-		DisableItem(menu, iClose);	/* but not our traffic light window */
+	else {
+		EnableItem(menu, iOpen);
+		
+		if (gState.inputIsValid || FrontWindow() != mainWindow.ptr) {
+			EnableItem(menu, iClose);	
+		} else {
+			DisableItem(menu, iClose);
+		}
+
+		if (gState.inputIsValid && gState.outputIsValid) {
+			EnableItem(menu, iSave);
+		} else {
+			DisableItem(menu, iSave);
+		}
+	}
+	EnableItem(menu, iQuit);
 
 	menu = GetMenuHandle(mEdit);
 	if ( IsDAWindow(window) ) {		/* a desk accessory might need the edit menu… */
@@ -475,7 +578,6 @@ void DoMenuCommand(long	menuResult)
 {
 	short		menuID;				/* the resource ID of the selected menu */
 	short		menuItem;			/* the item number of the selected menu */
-	short		itemHit;
 	Str255		daName;
 	short		daRefNum;
 	Boolean		handledByDA;
@@ -486,7 +588,7 @@ void DoMenuCommand(long	menuResult)
 		case mApple:
 			switch ( menuItem ) {
 				case iAbout:		/* bring up alert for About */
-					itemHit = Alert(rAboutAlert, nil);
+					ShowAboutDialog();
 					break;
 				case iHelp:		/* bring up alert for About */
 					ShowHelpDialog();
@@ -500,8 +602,24 @@ void DoMenuCommand(long	menuResult)
 			break;
 		case mFile:
 			switch ( menuItem ) {
+				case iOpen:
+					gPrefs.inputSource = kInputSourceFile;
+					PickInputFile();
+					UpdateMainWindow();
+					break;
 				case iClose:
-					DoCloseWindow(FrontWindow());
+					if (FrontWindow() == mainWindow.ptr) {
+						gPrefs.inputSource = kInputSourceFile;
+						AbortInputFile();
+						UpdateMainWindow();
+					} else {
+						DoCloseWindow(FrontWindow());
+					}
+					break;
+				case iSave:
+					if (WriteOutputFile()) {
+						AlertInfoMessage("\pSuccessfully saved changes.", noErr);
+					}
 					break;
 				case iQuit:
 					Terminate();
@@ -564,6 +682,7 @@ void Initialize(void)
 	short		count;
 	OSErr		err;
 	MenuHandle	mh;
+	CursHandle	cursH;
 
 	gInBackground = false;
 
@@ -602,6 +721,10 @@ void Initialize(void)
 	}
 	
 	DrawMenuBar();
+	
+	cursH = GetCursor(watchCursor);
+	HLock((Handle)cursH);
+	watchCurs = **cursH;
 	
 } /*Initialize*/
 

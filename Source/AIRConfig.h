@@ -8,15 +8,18 @@
 #
 ------------------------------------------------------------------------------*/
 
+#define	kInputSourceFile	0
+#define	kInputSourceURL		1
+
 /*	These #defines correspond to values defined in the Pascal source code.
 	Sample.c and Sample.r include this file. */
 	
-#define kMinSize	50				/* application's minimum size (in K) */
+#define kMinSize	150				/* application's minimum size (in K) */
 
 /*	We made the preferred size bigger than the minimum size by 12K, so that
 	there would be even more room for the scrap, FKEYs, etc. */
 
-#define kPrefSize	100				/* application's preferred size (in K) */
+#define kPrefSize	800				/* application's preferred size (in K) */
 
 #define	rMenuBar	128				/* application's menu bar */
 #define	rAboutAlert	128				/* about alert */
@@ -28,6 +31,9 @@
 #define	rHelpAlert	133				/* error user alert */
 #define	rHelpDialog	133				/* error user alert */
 #define	rPrefsDialog	134				/* error user alert */
+#define	rOpenURLDialog	135				/* error user alert */
+#define	rBusyDialog	136				/* error user alert */
+#define	rAboutDialog	128				/* error user alert */
 
 /* kSysEnvironsVersion is passed to SysEnvirons to tell it which version of the
    SysEnvRec we understand. */
@@ -53,9 +59,12 @@
 #define	iHelp					2
 
 #define	mFile					129		/* File menu */
-#define	iNew					1
-#define	iClose					4
-#define	iQuit					12
+#define	iOpen					1
+// - 2
+#define	iClose					3
+#define	iSave					4
+// - 5
+#define	iQuit					6
 
 #define	mEdit					130		/* Edit menu */
 #define	iUndo					1

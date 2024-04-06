@@ -1,10 +1,9 @@
 
 typedef struct {
-	FSSpec			outFileSpec;
-	FSSpec			inFileSpec;
+	Boolean			inputIsValid;
+	Boolean			outputIsValid;
 	
-	char *			inputString;
-	long			inputStringLength;
+	Handle			loadedInputString;
 	
 	long			totalEntries;
 	long 			totalTextLength;
@@ -18,7 +17,13 @@ typedef struct {
 
 typedef struct {
 	Boolean			hasSeenHelp;
+	
 	Boolean			headlessMode;
+	
+	short			inputSource;
+	AliasHandle		inputFileAlias;
+	AliasHandle		outputFileAlias;
+	Str255			inputURL;
 } AppPrefs;
 
 

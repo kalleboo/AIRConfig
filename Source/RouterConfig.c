@@ -2,48 +2,52 @@
 
 
 
+#pragma segment Main
+Boolean IsValidChar(char c) {
+	return c == '.' || c == '-' || (c>='a' && c<='z') || (c>='A' && c<='Z') || (c>='0' && c<='9');
+}
+
 
 #pragma segment Main
-Boolean LoadInputFile(void)
-{
-	short		inFileRef;
-	OSErr 		error;
+Boolean ParseInput(void) {
 	int         i;
 	short		thisEntryLength;
 	short       loopMode = 0;
-	
-	error = FSpOpenDF(&gState.inFileSpec, fsRdPerm, &inFileRef);
-	if (error != noErr) {
-		AlertErrorMessage("\pCant open input file", error);
-		return false;
-	}
-	
-	SetFPos(inFileRef, fsFromStart, 0);
-	GetEOF(inFileRef, &gState.inputStringLength);
-	gState.inputString = NewPtr(gState.inputStringLength);
-	FSRead(inFileRef, &gState.inputStringLength, gState.inputString);
-	FSClose(inFileRef);
+	char*			string;
+	unsigned long	stringLength;
 	
 	//Calculate the number of lines and the info needed for output length
 	gState.totalEntries = 0;
 	gState.totalTextLength = 0;
 	
+	HLock(gState.loadedInputString);
+	string = *gState.loadedInputString;
+	stringLength = GetHandleSize(gState.loadedInputString);
+	
 	thisEntryLength = 0;
 	
-	for (i = 0; i < gState.inputStringLength; i++) {
-		if (loopMode == 1 && IsDelimiter(gState.inputString[i])) {
+	for (i = 0; i < stringLength; i++) {
+		if (loopMode == 1 && IsDelimiter(string[i])) {
 			continue;
 		}
 		
 		loopMode = 0;
 		
-		if (IsDelimiter(gState.inputString[i])) {
+		if (IsDelimiter(string[i])) {
 			loopMode = 1;
 			if (thisEntryLength > 0) {
 				gState.totalEntries++;
 			}
 			thisEntryLength = 0;
 			continue;
+		}
+		
+		if (!IsValidChar(string[i])) {
+			gState.totalEntries = 0;
+			gState.totalTextLength = 0;
+			AlertErrorMessage("\pInvalid character found in input. Is this really a list of IPs and domains?", noErr);
+			HUnlock(gState.loadedInputString);
+			return false;
 		}
 		
 		gState.totalTextLength++;
@@ -54,13 +58,69 @@ Boolean LoadInputFile(void)
 		gState.totalEntries++;
 	}
 	
+	HUnlock(gState.loadedInputString);
+		
 	return gState.totalEntries > 0;
+}
+
+
+
+#pragma segment Main
+Boolean LoadInputFile(void)
+{
+	OSErr 		error;
+	
+	FSSpec		inFileSpec;
+	Boolean		wasChanged;
+	
+	short		inFileRef;
+	
+	long			readLength;
+	Ptr				readPointer;
+
+	
+	if (gPrefs.inputFileAlias == nil) {
+		return false;
+	}
+	
+	error = ResolveAlias(nil, gPrefs.inputFileAlias, &inFileSpec, &wasChanged);
+	if (error != noErr) {
+		AlertErrorMessage("\pError finding input file ", error);
+		return false;
+	}
+	
+	if (wasChanged) {
+		SavePreferences();
+	}
+		
+	error = FSpOpenDF(&inFileSpec, fsRdPerm, &inFileRef);
+	if (error != noErr) {
+		AlertErrorMessage("\pCant open input file", error);
+		return false;
+	}
+	
+	SetFPos(inFileRef, fsFromStart, 0);
+	GetEOF(inFileRef, &readLength);
+	readPointer = NewPtr(readLength);
+	FSRead(inFileRef, &readLength, readPointer);
+	FSClose(inFileRef);
+	
+	SetInputString(readPointer, readLength);
+	
+	DisposPtr(readPointer);
+	
+	return true;
 }
 
 
 #pragma segment Main
 Boolean LoadOutputFile(void)
 {
+	OSErr		error;
+	
+	FSSpec		outFileSpec;
+	Boolean		wasChanged;
+	
 	short		outFileRef;
 	
 	Handle      existingRes;
@@ -68,7 +128,21 @@ Boolean LoadOutputFile(void)
 	ResType     existingResType;
 	Str255      existingResName;
 	
-	outFileRef = FSpOpenResFile(&gState.outFileSpec, fsRdPerm);
+	if (gPrefs.outputFileAlias == nil) {
+		return false;
+	}
+
+	error = ResolveAlias(nil, gPrefs.outputFileAlias, &outFileSpec, &wasChanged);
+	if (error != noErr) {
+		AlertErrorMessage("\pError finding output file ", error);
+		return false;
+	}
+	
+	if (wasChanged) {
+		SavePreferences();
+	}
+		
+	outFileRef = FSpOpenResFile(&outFileSpec, fsRdPerm);
 	if (outFileRef == -1) {
 		AlertErrorMessage("\pError opening output file for writing ", ResError());
 		return false;
@@ -112,6 +186,13 @@ Handle FormatResource(void) {
 	char *		thisStringStartDest;
 	long 		thisStringLength = 0;
 	
+	char*			string;
+	unsigned long	stringLength;
+	
+	HLock(gState.loadedInputString);
+	string = *gState.loadedInputString;
+	stringLength = GetHandleSize(gState.loadedInputString);
+	
 	writeData = NewHandleClear(6 + gState.totalEntries + gState.totalTextLength);
 	HLock(writeData);
 	writeDataPointer = *writeData;
@@ -129,18 +210,18 @@ Handle FormatResource(void) {
 	
 	//[list of pascal strings]
 	thisStringLength = 0;
-	thisStringStartSrc = gState.inputString;
+	thisStringStartSrc = string;
 	thisStringStartDest = writeDataPointer;
 	writeDataPointer++; /* reserve space for length */
 	
-	for (i = 0; i < gState.inputStringLength; i++) {
-		if (loopMode == 1 && IsDelimiter(gState.inputString[i])) {
+	for (i = 0; i < stringLength; i++) {
+		if (loopMode == 1 && IsDelimiter(string[i])) {
 			continue;
 		}
 		
 		loopMode = 0;
 		
-		if (IsDelimiter(gState.inputString[i])) {
+		if (IsDelimiter(string[i])) {
 			//End the previous string by setting its length
 			if (thisStringLength > 0) {		
 				thisStringStartDest[0] = thisStringLength;
@@ -148,7 +229,7 @@ Handle FormatResource(void) {
 			
 			//Start the next string
 			thisStringLength = 0;
-			thisStringStartSrc = gState.inputString + i;
+			thisStringStartSrc = string + i;
 			thisStringStartDest = writeDataPointer;
 			writeDataPointer++; /* reserve space for length */
 				
@@ -157,7 +238,7 @@ Handle FormatResource(void) {
 		}
 		
 		//Copy a char
-		*writeDataPointer = gState.inputString[i];
+		*writeDataPointer = string[i];
 		writeDataPointer++;
 		thisStringLength++;
 	}
@@ -169,6 +250,8 @@ Handle FormatResource(void) {
 	HUnlock(writeData);
 	writeDataPointer = 0;
 	
+	HUnlock(gState.loadedInputString);
+	
 	return writeData;
 }
 
@@ -176,6 +259,11 @@ Handle FormatResource(void) {
 #pragma segment Main
 Boolean WriteOutputFile(void)
 {
+	OSErr		error;
+	
+	FSSpec		outFileSpec;
+	Boolean		wasChanged;
+	
 	Handle		writeData;
 	short		outFileRef;
 	
@@ -185,13 +273,21 @@ Boolean WriteOutputFile(void)
 	Str255      existingResName;
 	
 	Str255		numStr;
-	Handle		formattedString;
 	Str255		displayString;
-	
 	
 	writeData = FormatResource();
 	
-	outFileRef = FSpOpenResFile(&gState.outFileSpec, fsRdWrPerm);
+	if (gPrefs.outputFileAlias == nil) {
+		return false;
+	}
+
+	error = ResolveAlias(nil, gPrefs.outputFileAlias, &outFileSpec, &wasChanged);
+	if (error != noErr) {
+		AlertErrorMessage("\pError finding output file ", error);
+		return false;
+	}
+	
+	outFileRef = FSpOpenResFile(&outFileSpec, fsRdWrPerm);
 	if (outFileRef == -1) {
 		AlertErrorMessage("\pError opening output file for writing ", ResError());
 		AbortOutputFile();
@@ -224,9 +320,8 @@ Boolean WriteOutputFile(void)
 	//Write out comment
 	
 	NumToString(gState.totalEntries, numStr);
-	formattedString = StringInsert("\pAIRConfig for GlobalTalk (^0 entries)", numStr);
-	BlockMove(*formattedString, displayString, GetHandleSize(formattedString));
-	PtrToHand(displayString, &writeData, GetHandleSize(formattedString));
+	StringInsert("\pAIRConfig for GlobalTalk (^0 entries)", numStr, displayString);
+	PtrToHand(displayString, &writeData, displayString[0] + 1);
 	existingRes = Get1Resource('STR ', existingResId);
 	if (existingRes != NULL) {
 		GetResInfo(existingRes, &existingResId, &existingResType, existingResName);

@@ -1,14 +1,21 @@
+delete AIRConfig.makeout
+
 make AIRConfig > AIRConfig.makeout
-
-
 
 
 AIRConfig.makeout
 
 
-Move AIRConfig 'AIRConfig for GlobalTalk 0.3'
 
-delete AIRConfig.makeout
+
+
+
+Move AIRConfig 'AIRConfig for GlobalTalk 1.0'
+
+
+
+
+
 
 
 

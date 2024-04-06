@@ -1,5 +1,6 @@
 
-Handle StringInsert(Str255 baseString, Str255 subsString);
+pascal void DrawDefaultButtonUserItem(WindowPtr theWindow, short itemNo);
+void StringInsert(Str255 baseString, Str255 subsString, Str255 resultString);
 pascal void MyDrawRect(WindowPtr theWindow, short itemNo);
 short isKeyPressed(unsigned short k);
 
@@ -19,25 +20,15 @@ short isKeyPressed(unsigned short k) {
 	return ( ( km[k>>3] >> (k & 7) ) & 1);
 }
 
-#pragma segment Main
-size_t strlen(const char *str) {
-	const char *s;
-	for (s = str; *s; ++s) { }
-	return s - str;
-}
-
 
 
 #pragma segment Main
-Handle StringInsert(Str255 baseString, Str255 subsString) {
+void StringInsert(Str255 baseString, Str255 subsString, Str255 resultString) {
 	Handle 	baseHandle;
 	Handle 	subsHandle;
 	Str15 	keyStr = "\p^0";
 	long	sizeL;
 	long	length;
-	
-	Str255	output;
-	Handle 	outputHand;
 	
 	sizeL = baseString[0];
 	PtrToHand(&baseString[1], &baseHandle, sizeL);
@@ -54,14 +45,11 @@ Handle StringInsert(Str255 baseString, Str255 subsString) {
 	}
 	
 	//construct Pascal string
-	output[0] = (char) length;
-	BlockMove(*baseHandle, &output[1], length);
+	resultString[0] = (char) length;
+	BlockMove(*baseHandle, &resultString[1], length);
 	
-	//Have to return a handle
-	PtrToHand(&output, &outputHand, length + 1);
-	
-	//This function definitely leaks memory...
-	return outputHand;
+	DisposHandle(baseHandle);
+	DisposHandle(subsHandle);
 }
 
 
@@ -73,4 +61,24 @@ pascal void MyDrawRect(WindowPtr theWindow, short itemNo) {
 	
 	GetDItem(theWindow, itemNo, &iType, &iHandle, &iRect);
 	FrameRect(&iRect);
+}
+
+
+
+#pragma segment Main
+pascal void DrawDefaultButtonUserItem(WindowPtr theWindow, short itemNo) {
+	short		iType;
+	Handle		iHandle;
+	Rect		iRect;
+	short		itemX = itemNo;
+	
+	GetDItem(theWindow, ok, &iType, &iHandle, &iRect);
+	iRect.top = iRect.top - 4;
+	iRect.left = iRect.left - 4;
+	iRect.bottom = iRect.bottom + 4;
+	iRect.right = iRect.right + 4;
+	
+	PenSize(3,3);
+	FrameRoundRect(&iRect, 16, 16);
+	PenSize(1,1);
 }
