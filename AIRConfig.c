@@ -51,9 +51,33 @@ Boolean		gInBackground;		/* maintained by Initialize and DoEvent */
 QDGlobals qd;
 
 
+/* App variables */
+typedef struct {
+	FSSpec			outFileSpec;
+	FSSpec			inFileSpec;
+	
+	char *			inputString;
+	long			inputStringLength;
+	
+	long			totalEntries;
+	long 			totalTextLength;
+} AppState;
+
+AppState 		gState;
+
+
+
 /* Here are declarations for all of the C routines. In MPW 3.0 and later we can use
    actual prototypes for parameter type checking. */
-void SelectTextFile( void );
+
+void PickInputFile( void );
+void LoadInputFile( void );
+void PickOutputFile( void );
+void WriteOutputFile( void );
+Handle FormatResource(void);
+short GetTunnelResId(void);
+Boolean IsDelimiter(char c);
+
 void EventLoop( void );
 void DoEvent( EventRecord *event );
 void AdjustCursor( Point mouse, RgnHandle region );
@@ -71,6 +95,7 @@ void ForceEnvirons( void );
 Boolean IsAppWindow( WindowPtr window );
 Boolean IsDAWindow( WindowPtr window );
 Boolean TrapAvailable( short tNumber, TrapType tType );
+void AlertMessageUser( Str255 message, Str255 param2 );
 void AlertUser( void );
 
 
@@ -107,92 +132,100 @@ void main(void)
 	
 	UnloadSeg((Ptr) Initialize);	/* note that Initialize must not be in Main! */
 	
-	SelectTextFile();
+	PickInputFile();
+	LoadInputFile();
+	PickOutputFile();
+	WriteOutputFile();
 	
 	EventLoop();					/* call the main event loop */
 }
 
-void SelectTextFile(void)
+#pragma segment Main
+void PickInputFile(void)
 {
-	
 	SFTypeList				typeList;
 	StandardFileReply		reply;
-	
-	FSSpec					outFileSpec;
-	short					outFileRef;
-	FSSpec					inFileSpec;
-	short					inFileRef;
-	
-	long					length;
-	char *					idListString;
-	
-	int         i;
-	short       loopMode = 0;
-	long		totalEntries;
-	long 		totalTextLength;
-	
-	Handle		writeData;
-	char *		writeDataPointer;
-	char *		thisStringStartSrc;
-	char *		thisStringStartDest;
-	long 		thisStringLength;
-	
-	Handle      existingRes;
-	short       existingResId;
-	ResType     existingResType;
-	Str255      existingResName;
-	
 	
 	typeList[0] = 'TEXT';
 	StandardGetFile(NULL, 1, typeList, &reply);
 	if (!reply.sfGood) {
-		ExitToShell();
+		AlertMessageUser("\pCanceled", nil);
 	}
 	
-	inFileSpec = reply.sfFile;
+	gState.inFileSpec = reply.sfFile;
+}
+
+
+#pragma segment Main
+void LoadInputFile(void)
+{
+	short		inFileRef;
+	OSErr 		error;
+	int         i;
+	short       loopMode = 0;
 	
-	
-	typeList[0] = 'ARSD';
-	StandardGetFile(NULL, 1, typeList, &reply);
-	if (!reply.sfGood) {
-		ExitToShell();
+	error = FSpOpenDF(&gState.inFileSpec, fsRdPerm, &inFileRef);
+	if (error != noErr) {
+		AlertMessageUser("\pCant open input file", nil);
 	}
 	
-	outFileSpec = reply.sfFile;
-	
-	
-	FSpOpenDF(&inFileSpec, fsRdPerm, &inFileRef);
 	SetFPos(inFileRef, fsFromStart, 0);
-	GetEOF(inFileRef, &length);
-	idListString = NewPtr(length);
-	FSRead(inFileRef, &length, idListString);
+	GetEOF(inFileRef, &gState.inputStringLength);
+	gState.inputString = NewPtr(gState.inputStringLength);
+	FSRead(inFileRef, &gState.inputStringLength, gState.inputString);
 	FSClose(inFileRef);
 	
 	//Calculate the number of lines and the info needed for output length
-	for (i = 0; i < length; i++) {
-		if (loopMode == 1 && (idListString[i] == '\n' || idListString[i] == '\r')) {
+	gState.totalEntries = 0;
+	gState.totalTextLength = 0;
+	
+	for (i = 0; i < gState.inputStringLength; i++) {
+		if (loopMode == 1 && IsDelimiter(gState.inputString[i])) {
 			continue;
 		}
 		
 		loopMode = 0;
 		
-		if (idListString[i] == '\n' || idListString[i] == '\r') {
+		if (IsDelimiter(gState.inputString[i])) {
 			loopMode = 1;
-			totalEntries++;
+			gState.totalEntries++;
 			continue;
 		}
 		
-		totalTextLength++;
+		gState.totalTextLength++;
+	}
+}
+
+#pragma segment Main
+void PickOutputFile(void)
+{
+	SFTypeList				typeList;
+	StandardFileReply		reply;
+	
+	typeList[0] = 'ARSD';
+	StandardGetFile(NULL, 1, typeList, &reply);
+	if (!reply.sfGood) {
+		AlertMessageUser("\pCanceled", nil);
 	}
 	
+	gState.outFileSpec = reply.sfFile;
+}
+
+#pragma segment Main
+Handle FormatResource(void) {
 	
-/*	writeData = NewHandleClear(length);*/
-/*	BlockMove(idListString, *writeData, length);*/
+	int         i;
+	short       loopMode = 0;
 	
-	writeData = NewHandleClear(6 + totalEntries + totalTextLength);
+	Handle		writeData;
+	char *		writeDataPointer;
+	
+	char *		thisStringStartSrc;
+	char *		thisStringStartDest;
+	long 		thisStringLength = 0;
+	
+	writeData = NewHandleClear(6 + gState.totalEntries + gState.totalTextLength);
 	HLock(writeData);
-	
-	
 	writeDataPointer = *writeData;
 	
 	//00 00 00 00     Unknown header
@@ -202,61 +235,112 @@ void SelectTextFile(void)
 	writeDataPointer++;
 	
 	//00 01           Number of entries
-	writeDataPointer++;
-	*writeDataPointer = totalEntries;
+	writeDataPointer++; /* TODO make long */
+	*writeDataPointer = gState.totalEntries;
 	writeDataPointer++;
 	
 	//[list of pascal strings]
-	loopMode = 0;
 	thisStringLength = 0;
-	thisStringStartSrc = idListString;
+	thisStringStartSrc = gState.inputString;
 	thisStringStartDest = writeDataPointer;
 	writeDataPointer++; /* reserve space for length */
 	
-	for (i = 0; i < length; i++) {
-		if (loopMode == 1 && (idListString[i] == '\n' || idListString[i] == '\r')) {
+	for (i = 0; i < gState.inputStringLength; i++) {
+		if (loopMode == 1 && IsDelimiter(gState.inputString[i])) {
 			continue;
 		}
 		
 		loopMode = 0;
 		
-		
-		if (idListString[i] == '\n' || idListString[i] == '\r') {
+		if (IsDelimiter(gState.inputString[i])) {
+			//End the previous string by setting its length
 			thisStringStartDest[0] = thisStringLength;
 			
+			//Start the next string
 			thisStringLength = 0;
-			thisStringStartSrc = idListString + i;
+			thisStringStartSrc = gState.inputString + i;
 			thisStringStartDest = writeDataPointer;
 			writeDataPointer++; /* reserve space for length */
 				
 			loopMode = 1;
 			continue;
 		}
-			
-		*writeDataPointer = idListString[i];
+		
+		//Copy a char
+		*writeDataPointer = gState.inputString[i];
 		writeDataPointer++;
 		thisStringLength++;
 	}
 	
 	thisStringStartDest[0] = thisStringLength;
 	
-	outFileRef = FSpOpenResFile(&outFileSpec, fsWrPerm);
-	UseResFile(outFileRef);
+	HUnlock(writeData);
+	writeDataPointer = 0;
 	
-	existingRes = Get1Resource('acfg', 16384);
-	if (existingRes != NULL) {
-		GetResInfo(existingRes, &existingResId, &existingResType, existingResName);
-		GetResAttrs(existingRes);
-		RemoveResource(existingRes);
+	return writeData;
+}
+
+
+#pragma segment Main
+void WriteOutputFile(void)
+{
+	Handle		writeData;
+	short		outFileRef;
+	
+	Handle      existingRes;
+	short       existingResId;
+	ResType     existingResType;
+	Str255      existingResName;
+	
+	Str255 		numStr;
+	
+	
+	writeData = FormatResource();
+	
+	outFileRef = FSpOpenResFile(&gState.outFileSpec, fsRdWrPerm);
+	if (outFileRef == -1) {
+		NumToString(ResError(), numStr);
+		AlertMessageUser("\pError opening output file ", numStr);
 	}
 	
+	UseResFile(outFileRef);
+	
+	existingResId = GetTunnelResId();
+	
+	existingRes = Get1Resource('acfg', existingResId);
+	if (existingRes == NULL) {
+		AlertMessageUser("\pCould not find existing IPTunnel configuration", nil);
+	}
+	
+	GetResInfo(existingRes, &existingResId, &existingResType, existingResName);
+	GetResAttrs(existingRes);
+	RemoveResource(existingRes);
+	
 	AddResource(writeData, 'acfg', 16384, existingResName);
-	WriteResource(writeData);
-	ReleaseResource(writeData);
+	
+	if (ResError() == noErr) {
+		WriteResource(writeData);
+	} else {
+		NumToString(ResError(), numStr);
+		AlertMessageUser("\pError adding resource ", numStr);
+	}
 	
 	CloseResFile(outFileRef);
 }
 
+
+#pragma segment Main
+short GetTunnelResId(void)
+{
+	return 16384;
+	
+	
+}
+
+#pragma segment Main
+Boolean IsDelimiter(char c) {
+	return (c == '\n' || c == '\r' || c == ',' || c == '\t' || c == ';');
+}
 
 #pragma segment Main
 void EventLoop(void)
@@ -661,11 +745,23 @@ Boolean TrapAvailable(short	tNumber, TrapType tType)
 
 
 #pragma segment Main
-void AlertUser(void)
+void AlertMessageUser(Str255 message, Str255 param2)
 {
 	short		itemHit;
 
 	SetCursor(&qd.arrow);
+	ParamText(message, param2, nil, nil);
+	itemHit = Alert(rUserAlert, nil);
+	ExitToShell();
+} /* AlertUser */
+
+#pragma segment Main
+void AlertUser()
+{
+	short		itemHit;
+
+	SetCursor(&qd.arrow);
+	ParamText("\pUnknown error", nil, nil, nil);
 	itemHit = Alert(rUserAlert, nil);
 	ExitToShell();
 } /* AlertUser */

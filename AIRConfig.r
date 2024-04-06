@@ -158,7 +158,7 @@ resource 'DITL' (rAboutAlert, purgeable) {
 /* this ALRT and DITL are used as an error screen */
 
 resource 'ALRT' (rUserAlert, purgeable) {
-	{40, 20, 120, 260},
+	{40, 20, 150, 260}, /* top left height width */
 	rUserAlert,
 	{ /* array: 4 elements */
 		/* [1] */
@@ -177,16 +177,16 @@ resource 'ALRT' (rUserAlert, purgeable) {
 resource 'DITL' (rUserAlert, purgeable) {
 	{ /* array DITLarray: 3 elements */
 		/* [1] */
-		{50, 150, 70, 230},
+		{80, 150, 105, 225},  /* top left bottom right */
 		Button {
 			enabled,
 			"OK"
 		},
 		/* [2] */
-		{10, 60, 30, 230},
+		{10, 60, 60, 230},
 		StaticText {
 			disabled,
-			"Sample - Error occurred!"
+			"Error occurred: ^0^1^2^3"
 		},
 		/* [3] */
 		{8, 8, 40, 40},
