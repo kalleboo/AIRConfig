@@ -1,17 +1,10 @@
 
 
-void LoadInputFile( void );
-void LoadOutputFile( void );
-
-Handle FormatResource(void);
-short GetTunnelResId(void);
-Boolean IsDelimiter(char c);
-
 
 
 
 #pragma segment Main
-void LoadInputFile(void)
+Boolean LoadInputFile(void)
 {
 	short		inFileRef;
 	OSErr 		error;
@@ -22,8 +15,7 @@ void LoadInputFile(void)
 	error = FSpOpenDF(&gState.inFileSpec, fsRdPerm, &inFileRef);
 	if (error != noErr) {
 		AlertErrorMessage("\pCant open input file", error);
-		AbortInputFile();
-		return;
+		return false;
 	}
 	
 	SetFPos(inFileRef, fsFromStart, 0);
@@ -61,11 +53,13 @@ void LoadInputFile(void)
 	if (thisEntryLength > 0) {
 		gState.totalEntries++;
 	}
+	
+	return gState.totalEntries > 0;
 }
 
 
 #pragma segment Main
-void LoadOutputFile(void)
+Boolean LoadOutputFile(void)
 {
 	short		outFileRef;
 	
@@ -77,8 +71,7 @@ void LoadOutputFile(void)
 	outFileRef = FSpOpenResFile(&gState.outFileSpec, fsRdPerm);
 	if (outFileRef == -1) {
 		AlertErrorMessage("\pError opening output file for writing ", ResError());
-		AbortOutputFile();
-		return;
+		return false;
 	}
 	
 	UseResFile(outFileRef);
@@ -86,15 +79,13 @@ void LoadOutputFile(void)
 	existingResId = GetTunnelResId();
 	if (existingResId == -1) {
 		AlertErrorMessage("\pCould not find existing IPTunnel configuration", ResError());
-		AbortOutputFile();
-		return;
+		return false;
 	}
 	
 	existingRes = Get1Resource('acfg', existingResId);
 	if (existingRes == NULL) {
 		AlertErrorMessage("\pCould not find existing IPTunnel configuration", ResError());
-		AbortOutputFile();
-		return;
+		return false;
 	}
 	
 	GetResInfo(existingRes, &existingResId, &existingResType, existingResName);
@@ -104,6 +95,8 @@ void LoadOutputFile(void)
 	BlockMove(existingResName, gState.resourceName, sizeof(Str255));
 	
 	CloseResFile(outFileRef);
+	
+	return true;
 }
 
 #pragma segment Main
@@ -191,6 +184,10 @@ Boolean WriteOutputFile(void)
 	ResType     existingResType;
 	Str255      existingResName;
 	
+	Str255		numStr;
+	Handle		formattedString;
+	Str255		displayString;
+	
 	
 	writeData = FormatResource();
 	
@@ -225,7 +222,11 @@ Boolean WriteOutputFile(void)
 	}
 	
 	//Write out comment
-	PtrToHand("\pAIRConfig for GlobalTalk", &writeData, 25);
+	
+	NumToString(gState.totalEntries, numStr);
+	formattedString = StringInsert("\pAIRConfig for GlobalTalk (^0 entries)", numStr);
+	BlockMove(*formattedString, displayString, GetHandleSize(formattedString));
+	PtrToHand(displayString, &writeData, GetHandleSize(formattedString));
 	existingRes = Get1Resource('STR ', existingResId);
 	if (existingRes != NULL) {
 		GetResInfo(existingRes, &existingResId, &existingResType, existingResName);

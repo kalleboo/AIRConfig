@@ -34,13 +34,12 @@ RomMap	  	=	Mac`gestalt mach -s`ROM.map
 # 	You can define {SymOptions} as "-sym on" or "-sym off" for use with SADE
 # 	We also recommend requiring prototypes for all functions
 							
-sampObjs	= AIRConfig.c.o
+sampObjs	= :Source:AIRConfig.c.o
 
 sampLibs	= "{Libraries}"MacRuntime.o ¶
 			  "{Libraries}"Interface.o
 		
-AIRConfig		ÄÄ {sampObjs} AIRConfig.r
+AIRConfig		ÄÄ {sampObjs} :Source:AIRConfig.r
 	Link -o {Targ} {sampObjs} {sampLibs} {SymOptions}
-	Rez -rd -o {Targ} AIRConfig.r -append
+	Rez -rd -o {Targ} :Source:AIRConfig.r -append
 	SetFile {Targ} -t APPL -c 'AIRc' -a B
-	#Move AIRConfig 'AIRConfig for GlobalTalk'

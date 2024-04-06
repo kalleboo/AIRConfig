@@ -61,31 +61,16 @@ QDGlobals qd;
 AppState 		gState;
 AppPrefs		gPrefs;
 MainWindow 		mainWindow;
-
-#define		mwDoItButton	1
-#define		mwInputButton	2
-#define		mwInputStatus	3
-#define		mwOutputButton	4
-#define		mwOutputStatus	5
-#define		mwInputTitle	8
-#define		mwOutputTitle	9
-#define		mwDivider		10
-
+DialogPtr		prefsWindowPtr;
 
 
 
 /* Here are declarations for all of the C routines. In MPW 3.0 and later we can use
    actual prototypes for parameter type checking. */
 
-void ShowMainWindow(void);
-void UpdateMainWindow(void);
-void DoMainWindowEvent(short whichItem);
 
-void PickInputFile( void );
 void AbortInputFile(void);
-void PickOutputFile( void );
 void AbortOutputFile(void);
-Boolean WriteOutputFile( void );
 
 void EventLoop( void );
 void DoEvent( EventRecord *event );
@@ -107,11 +92,25 @@ Boolean TrapAvailable( short tNumber, TrapType tType );
 
 
 
+
+Boolean LoadInputFile( void );
+Boolean LoadOutputFile( void );
+
+Handle FormatResource(void);
+Boolean WriteOutputFile( void );
+
+short GetTunnelResId(void);
+Boolean IsDelimiter(char c);
+
+
+
 #include "Util.c"
 #include "Errors.c"
-#include "RouterConfig.c"
 #include "Preferences.c"
+#include "MainWindow.c"
+#include "RouterConfig.c"
 #include "Help.c"
+#include "PreferencesWindow.c";
 
 
 
@@ -148,7 +147,26 @@ void main(void)
 	
 	UnloadSeg((Ptr) Initialize);	/* note that Initialize must not be in Main! */
 	
-	LoadPreferences();
+	if (isOptionKeyPressed()) {
+		gPrefs.hasSeenHelp = true;
+		SavePreferences();
+	} else {
+		LoadPreferences();
+	}
+	
+	if (gPrefs.headlessMode) {
+		if (gState.inFileSpec.vRefNum != 0
+			&& gState.inFileSpec.vRefNum != 0
+			&& gState.totalEntries > 0
+			&& WriteOutputFile()) {
+			
+			ExitToShell();
+			return;
+		} else {
+			gPrefs.headlessMode = false;
+			SavePreferences();
+		}
+	}
 	
 	ShowMainWindow();
 	
@@ -159,100 +177,7 @@ void main(void)
 	EventLoop();					/* call the main event loop */
 }
 
-#pragma segment Main
-void ShowMainWindow(void) {
-	short	iType;
-	Handle	iHandle;
-	Rect	iRect;
 
-	mainWindow.ptr = GetNewDialog(130, NULL, (WindowPtr) -1);
-	
-	GetDItem(mainWindow.ptr, mwInputTitle, &iType, &iHandle, &iRect);
-	SetIText(iHandle, "\pHost IDs:");
-	GetDItem(mainWindow.ptr, mwOutputTitle, &iType, &iHandle, &iRect);
-	SetIText(iHandle, "\pRouter Config:");
-	
-	GetDItem(mainWindow.ptr, mwInputStatus, &iType, &mainWindow.inputStatus, &iRect);
-	GetDItem(mainWindow.ptr, mwOutputStatus, &iType, &mainWindow.outputStatus, &iRect);
-	GetDItem(mainWindow.ptr, mwDoItButton, &iType, &iHandle, &iRect);
-	mainWindow.doItButton = (ControlHandle) iHandle;
-	
-	GetDItem(mainWindow.ptr, mwDivider, &iType, &iHandle, &iRect);
-	SetDItem(mainWindow.ptr, mwDivider, iType, (Handle) &MyDrawRect, &iRect);
-	
-	UpdateMainWindow();
-	
-	ShowWindow(mainWindow.ptr);
-}
-
-#pragma segment Main
-void UpdateMainWindow(void) {
-	Boolean		isReady = true;
-	Str255		numStr;
-	Handle		formattedString;
-	Str255		displayString;
-	
-	if (gState.totalEntries == 0) {
-		SetIText(mainWindow.inputStatus, "\pNo input selected");
-		isReady = false;
-	} else {
-		NumToString(gState.totalEntries, numStr);
-		formattedString = StringInsert("\pLoaded ^0 entries", numStr);
-		BlockMove(*formattedString, displayString, GetHandleSize(formattedString));
-		
-		SetIText(mainWindow.inputStatus, displayString);
-	}
-	
-	if (gState.outFileSpec.vRefNum == 0) {
-		SetIText(mainWindow.outputStatus, "\pNo output selected");
-		isReady = false;
-	} else {
-		formattedString = StringInsert("\pFound IP tunnel on \"^0\"", gState.resourceName);
-		BlockMove(*formattedString, displayString, GetHandleSize(formattedString));
-		
-		SetIText(mainWindow.outputStatus, displayString);
-	}
-	
-	HiliteControl(mainWindow.doItButton, isReady ? 0 : 255);
-}
-
-#pragma segment Main
-void DoMainWindowEvent(short whichItem) {
-	switch (whichItem) {
-		case mwInputButton:
-			PickInputFile();
-			break;
-			
-		case mwOutputButton:
-			PickOutputFile();
-			break;
-			
-		case mwDoItButton:
-			if (WriteOutputFile()) {
-				AlertInfoMessage("\pSuccessfully saved changes.", noErr);
-			}
-			break;
-	}
-	
-	UpdateMainWindow();
-}
-
-#pragma segment Main
-void PickInputFile(void)
-{
-	SFTypeList				typeList;
-	StandardFileReply		reply;
-	
-	typeList[0] = 'TEXT';
-	StandardGetFile(NULL, 1, typeList, &reply);
-	if (!reply.sfGood) {
-		return;
-	}
-	
-	gState.inFileSpec = reply.sfFile;
-	
-	LoadInputFile();
-}
 
 #pragma segment Main
 void AbortInputFile(void) {
@@ -260,23 +185,8 @@ void AbortInputFile(void) {
 	gState.inputString = nil;
 	gState.totalEntries = 0;
 	gState.totalTextLength = 0;
-}
-
-#pragma segment Main
-void PickOutputFile(void)
-{
-	SFTypeList				typeList;
-	StandardFileReply		reply;
 	
-	typeList[0] = 'ARSD';
-	StandardGetFile(NULL, 1, typeList, &reply);
-	if (!reply.sfGood) {
-		return;
-	}
-	
-	gState.outFileSpec = reply.sfFile;
-	
-	LoadOutputFile();
+	SavePreferences();
 }
 
 
@@ -285,6 +195,8 @@ void AbortOutputFile(void) {
 	gState.outFileSpec.vRefNum = 0;
 	gState.resourceId = 0;
 	gState.resourceName[0] = 0;
+	
+	SavePreferences();
 }
 
 
@@ -337,6 +249,8 @@ void DoEvent(EventRecord *event)
 		if (DialogSelect(event, &whichDialog, &whichItem)) {
 			if (whichDialog == mainWindow.ptr) {
 				DoMainWindowEvent(whichItem);
+			} else if (whichDialog == prefsWindowPtr) {
+				DoPrefsWindowEvent(whichItem);
 			}
 		}
 	}
@@ -376,7 +290,11 @@ void DoEvent(EventRecord *event)
 					break;
 				case inGoAway:
 					if (TrackGoAway(window, event->where)) {
-						ExitToShell();
+						if (window == mainWindow.ptr) {
+							ExitToShell();
+						} else {
+							DoCloseWindow(window);
+						}
 					}
 			}
 			break;
@@ -543,7 +461,10 @@ void AdjustMenus(void)
 		DisableItem(menu, iCopy);
 		DisableItem(menu, iClear);
 		DisableItem(menu, iPaste);
+		EnableItem(menu, iPrefs);
 	}
+	
+	
 	
 
 } /*AdjustMenus*/
@@ -588,7 +509,14 @@ void DoMenuCommand(long	menuResult)
 			}
 			break;
 		case mEdit:					/* call SystemEdit for DA editing & MultiFinder */
-			handledByDA = SystemEdit(menuItem-1);	/* since we donÕt do any Editing */
+			switch ( menuItem ) {
+				case iPrefs:
+					ShowPrefsWindow();
+					break;
+				default:
+					handledByDA = SystemEdit(menuItem-1);	/* since we donÕt do any Editing */
+					break;
+			}
 			break;
 		case kHMHelpMenuID:
 			ShowHelpDialog();
@@ -603,7 +531,7 @@ Boolean DoCloseWindow(WindowPtr	window)
 {
 	if ( IsDAWindow(window) )
 		CloseDeskAcc(((WindowPeek) window)->windowKind);
-	else if ( IsAppWindow(window) )
+	else if ( IsAppWindow(window) || window == prefsWindowPtr)
 		CloseWindow(window);
 	return true;
 } /*DoCloseWindow*/

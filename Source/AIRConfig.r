@@ -18,10 +18,10 @@ Include "Icon.rsrc";
 Include "Dialogs.rsrc";
 
 resource 'vers' (1) {
-	0x00, 0x03, release, 0x00,
+	0x00, 0x04, release, 0x00,
 	verUS,
-	"0.3",
-	"0.3 by @kalleboo@bitbang.social"
+	"0.4",
+	"0.4 by @kalleboo@bitbang.social"
 };
 
 
@@ -101,6 +101,10 @@ resource 'MENU' (mEdit, preload) {
 		"Paste",
 			noicon, "V", nomark, plain;
 		"Clear",
+			noicon, nokey, nomark, plain;
+		"-",
+			noicon, nokey, nomark, plain;
+		"Preferences...",
 			noicon, nokey, nomark, plain
 	}
 };

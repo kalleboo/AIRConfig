@@ -1,8 +1,23 @@
 
 Handle StringInsert(Str255 baseString, Str255 subsString);
 pascal void MyDrawRect(WindowPtr theWindow, short itemNo);
+short isKeyPressed(unsigned short k);
 
 
+
+#pragma segment Main
+Boolean isOptionKeyPressed() {
+	return isKeyPressed(0x3A);
+}
+
+
+#pragma segment Main
+short isKeyPressed(unsigned short k) {
+	unsigned char km[16];
+	
+	GetKeys((unsigned long*) km);
+	return ( ( km[k>>3] >> (k & 7) ) & 1);
+}
 
 #pragma segment Main
 size_t strlen(const char *str) {

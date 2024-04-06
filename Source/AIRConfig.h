@@ -27,6 +27,7 @@
 #define	rInfoAlert	132				/* error user alert */
 #define	rHelpAlert	133				/* error user alert */
 #define	rHelpDialog	133				/* error user alert */
+#define	rPrefsDialog	134				/* error user alert */
 
 /* kSysEnvironsVersion is passed to SysEnvirons to tell it which version of the
    SysEnvRec we understand. */
@@ -62,6 +63,7 @@
 #define	iCopy					4
 #define	iPaste					5
 #define	iClear					6
+#define	iPrefs					8
 
 /*	1.01 - kTopLeft - This is for positioning the Disk Initialization dialogs. */
 

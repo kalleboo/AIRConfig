@@ -11,19 +11,26 @@ typedef struct {
 	
 	Str255			resourceName;
 	short			resourceId;
+	
+	Boolean			runningHeadless;
 } AppState;
 
 
 typedef struct {
 	Boolean			hasSeenHelp;
+	Boolean			headlessMode;
 } AppPrefs;
 
 
 typedef struct {
 	DialogPtr		ptr;
+	
 	Handle			inputStatus;
+	ControlHandle	inputButton;
+	
 	Handle			outputStatus;
+	ControlHandle	outputButton;
+	
 	ControlHandle	doItButton;
 	
 } MainWindow;
-
