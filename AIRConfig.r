@@ -1,56 +1,18 @@
 /*------------------------------------------------------------------------------
 #
 #	Apple Macintosh Developer Technical Support
-#
 #	MultiFinder-Aware Simple Sample Application
-#
-#	Sample
-#
-#	Sample.r	-	Rez Source
-#
-#	Copyright © Apple Computer, Inc. 1989-1990, 1998
+#	Sample.c	-	C Source
+#	Copyright © 1989-1991, 1994-95 Apple Computer, Inc.
 #	All rights reserved.
 #
-#	Versions:	
-#				1.00				08/88
-#				1.01				11/88
-#				1.02				04/89	MPW 3.1
-#				1.03				02/90	MPW 3.2
-#				1.04				06/98	Universal Interfaces 3.1
-#
-#	Components:
-#				Sample.c			Feb.  1, 1990
-#				Sample.r			Feb.  1, 1990
-#				Sample.h			Feb.  1, 1990
-#				Sample.make			Feb.  1, 1990
-#
-#	Sample is an example application that demonstrates how to
-#	initialize the commonly used toolbox managers, operate 
-#	successfully under MultiFinder, handle desk accessories, 
-#	and create, grow, and zoom windows.
-#
-#	It does not by any means demonstrate all the techniques 
-#	you need for a large application. In particular, Sample 
-#	does not cover exception handling, multiple windows/documents, 
-#	sophisticated memory management, printing, or undo. All of 
-#	these are vital parts of a normal full-sized application.
-#
-#	This application is an example of the form of a Macintosh 
-#	application; it is NOT a template. It is NOT intended to be 
-#	used as a foundation for the next world-class, best-selling, 
-#	600K application. A stick figure drawing of the human body may 
-#	be a good example of the form for a painting, but that does not 
-#	mean it should be used as the basis for the next Mona Lisa.
-#
-#	We recommend that you review this program or TESample before 
-#	beginning a new application.
 ------------------------------------------------------------------------------*/
 
 
 #include "SysTypes.r"
 #include "Types.r"
 
-#include "Sample.h"
+#include "AIRConfig.h"
 
 resource 'vers' (1) {
 	0x02, 0x00, release, 0x00,
@@ -70,7 +32,7 @@ type 'RECT' {
 /* we use an MBAR resource to conveniently load all the menus */
 
 resource 'MBAR' (rMenuBar, preload) {
-	{ mApple, mFile, mEdit, mLight };	/* four menus */
+	{ mApple, mFile, mEdit };	/* four menus */
 };
 
 
@@ -134,18 +96,6 @@ resource 'MENU' (mEdit, preload) {
 		"Paste",
 			noicon, "V", nomark, plain;
 		"Clear",
-			noicon, nokey, nomark, plain
-	}
-};
-
-resource 'MENU' (mLight, preload) {
-	mLight, textMenuProc,
-	NoItems,				/* disable everything, program does the enabling */
-	enabled, "Traffic",
-	 {
-		"Red Light",
-			noicon, nokey, nomark, plain;
-		"Green Light",
 			noicon, nokey, nomark, plain
 	}
 };
@@ -251,14 +201,6 @@ resource 'DITL' (rUserAlert, purgeable) {
 resource 'WIND' (rWindow, preload, purgeable) {
 	{60, 40, 290, 160},
 	noGrowDocProc, visible, noGoAway, 0x0, "Traffic", noAutoCenter
-};
-
-resource 'RECT' (rStopRect, preload, purgeable) {
-	{10, 10, 110, 110}
-};
-
-resource 'RECT' (rGoRect, preload, purgeable) {
-	{120, 10, 220, 110}
 };
 
 

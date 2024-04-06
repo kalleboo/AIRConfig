@@ -1,101 +1,16 @@
 /*------------------------------------------------------------------------------
 #
 #	Apple Macintosh Developer Technical Support
-#
 #	MultiFinder-Aware Simple Sample Application
-#
-#	Sample
-#
-#	Sample.h	-	Rez and C Include Source
-#
-#	Copyright © Apple Computer, Inc. 1989-1990
+#	Sample.c	-	C Source
+#	Copyright © 1989-1991, 1994-95 Apple Computer, Inc.
 #	All rights reserved.
 #
-#	Versions:	
-#				1.00				08/88
-#				1.01				11/88
-#				1.02				04/89	MPW 3.1
-#				1.03				02/90	MPW 3.2
-#
-#	Components:
-#				Sample.c			Feb.  1, 1990
-#				Sample.r			Feb.  1, 1990
-#				Sample.h			Feb.  1, 1990
-#				Sample.make			Feb.  1, 1990
-#
-#	Sample is an example application that demonstrates how to
-#	initialize the commonly used toolbox managers, operate 
-#	successfully under MultiFinder, handle desk accessories, 
-#	and create, grow, and zoom windows.
-#
-#	It does not by any means demonstrate all the techniques 
-#	you need for a large application. In particular, Sample 
-#	does not cover exception handling, multiple windows/documents, 
-#	sophisticated memory management, printing, or undo. All of 
-#	these are vital parts of a normal full-sized application.
-#
-#	This application is an example of the form of a Macintosh 
-#	application; it is NOT a template. It is NOT intended to be 
-#	used as a foundation for the next world-class, best-selling, 
-#	600K application. A stick figure drawing of the human body may 
-#	be a good example of the form for a painting, but that does not 
-#	mean it should be used as the basis for the next Mona Lisa.
-#
-#	We recommend that you review this program or TESample before 
-#	beginning a new application.
 ------------------------------------------------------------------------------*/
 
 /*	These #defines correspond to values defined in the Pascal source code.
 	Sample.c and Sample.r include this file. */
-
-/*	Determining an application's minimum size to request from MultiFinder depends
-	on many things, each of which can be unique to an application's function,
-	the anticipated environment, the developer's attitude of what constitutes
-	reasonable functionality and performance, etc. Here is a list of some things to
-	consider when determining the minimum size (and preferred size) for your
-	application. The list is pretty much in order of importance, but by no means
-	complete.
 	
-	1.	What is the minimum size needed to give almost 100 percent assurance
-		that the application won't crash because it ran out of memory? This
-		includes not only things that you do have direct control over such as
-		checking for NIL handles and pointers, but also things that some
-		feel are not so much under their control such as QuickDraw and the
-		Segment Loader.
-		
-	2.	What kind of performance can a user expect from the application when
-		it is running in the minimum memory configuration? Performance includes
-		not only speed in handling data, but also things like how many documents
-		can be opened, etc.
-		
-	3.	What are the typical sizes of scraps [is a boy dog] that a user might
-		wish to work with when lauching or switching to your application? If
-		the amount of memory is too small, the scrap may get lost [will have
-		to be shot]. This can be quite frustrating to the user.
-		
-	4.	The previous items have concentrated on topics that tend to cause an
-		increase in the minimum size to request from MultiFinder. On the flip
-		side, however, should be the consideration of what environments the
-		application may be running in. There may be a high probability that
-		many users with relatively small memory configurations will want to
-		avail themselves of your application. Or, many users might want to use it
-		while several other, possibly related/complementary applications are
-		running. If that is the case, it would be helpful to have a fairly
-		small minimum size.
-	
-	So, what did we decide on Sample? First, Sample has little risk of
-	running out of memory once it starts. Second, performance isn't much
-	of an issue since it doesn't do much and multiple windows are not
-	allowed. Third, there are no edit operations in Sample itself, so we
-	just want to provide enough space for a reasonable scrap to survive
-	between desk accessory launches. Lastly, Sample should intrude as little
-	as possible, so the effort should be towards making it as small as possible.
-	We looked at some heap dumps while the application was running under
-	various partition sizes. With a size of 23K, there was approximately
-	8-9K free, which is a good 'slop' factor in an application like this
-	which doesn't do much, but where we'd still like the scrap to survive
-	most of the time. */
-
 #define kMinSize	23				/* application's minimum size (in K) */
 
 /*	We made the preferred size bigger than the minimum size by 12K, so that
@@ -107,8 +22,6 @@
 #define	rAboutAlert	128				/* about alert */
 #define	rUserAlert	129				/* error user alert */
 #define	rWindow		128				/* application's window */
-#define rStopRect	128				/* rectangle for Stop light */
-#define rGoRect		129				/* rectangle for Go light */
 
 /* kSysEnvironsVersion is passed to SysEnvirons to tell it which version of the
    SysEnvRec we understand. */
@@ -143,10 +56,6 @@
 #define	iCopy					4
 #define	iPaste					5
 #define	iClear					6
-
-#define	mLight					131		/* Light menu */
-#define	iStop					1
-#define	iGo						2
 
 /*	1.01 - kTopLeft - This is for positioning the Disk Initialization dialogs. */
 
