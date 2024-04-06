@@ -14,6 +14,8 @@
 
 #include "AIRConfig.h"
 
+Include "Icon.rsrc"; //'ICN#' ( 128 ) as 'ICN#' ( 128 );
+
 resource 'vers' (1) {
 	0x02, 0x00, release, 0x00,
 	verUS,
