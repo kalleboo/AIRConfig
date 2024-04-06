@@ -22,6 +22,9 @@
 #define	rAboutAlert	128				/* about alert */
 #define	rUserAlert	129				/* error user alert */
 #define	rWindow		128				/* application's window */
+#define	rFatalAlert	129				/* error user alert */
+#define	rWarningAlert	131				/* error user alert */
+#define	rInfoAlert	132				/* error user alert */
 
 /* kSysEnvironsVersion is passed to SysEnvirons to tell it which version of the
    SysEnvRec we understand. */

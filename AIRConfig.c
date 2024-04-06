@@ -8,6 +8,8 @@
 #
 ------------------------------------------------------------------------------*/
 
+#define OLDROUTINENAMES 1
+
 #include <Limits.h>
 #include <Types.h>
 #include <Resources.h>
@@ -18,6 +20,7 @@
 #include <Menus.h>
 #include <TextEdit.h>
 #include <Dialogs.h>
+#include <Controls.h>
 #include <Menus.h>
 #include <Devices.h>
 #include <ToolUtils.h>
@@ -61,19 +64,47 @@ typedef struct {
 	
 	long			totalEntries;
 	long 			totalTextLength;
+	
+	Str255			resourceName;
+	short			resourceId;
 } AppState;
 
 AppState 		gState;
 
 
+typedef struct {
+	DialogPtr		ptr;
+	Handle			inputStatus;
+	Handle			outputStatus;
+	ControlHandle	doItButton;
+	
+} MainWindow;
+
+MainWindow 		mainWindow;
+
+#define		mwInputButton	1
+#define		mwInputStatus	2
+#define		mwOutputButton	3
+#define		mwOutputStatus	4
+#define		mwDoItButton	5
+#define		mwInputTitle	6
+#define		mwOutputTitle	7
+
 
 /* Here are declarations for all of the C routines. In MPW 3.0 and later we can use
    actual prototypes for parameter type checking. */
 
+void ShowMainWindow(void);
+void UpdateMainWindow(void);
+void DoMainWindowEvent(short whichItem);
+
 void PickInputFile( void );
+void AbortInputFile(void);
 void LoadInputFile( void );
 void PickOutputFile( void );
-void WriteOutputFile( void );
+void AbortOutputFile(void);
+void LoadOutputFile( void );
+Boolean WriteOutputFile( void );
 Handle FormatResource(void);
 short GetTunnelResId(void);
 Boolean IsDelimiter(char c);
@@ -95,8 +126,14 @@ void ForceEnvirons( void );
 Boolean IsAppWindow( WindowPtr window );
 Boolean IsDAWindow( WindowPtr window );
 Boolean TrapAvailable( short tNumber, TrapType tType );
-void AlertMessageUser( Str255 message, Str255 param2 );
-void AlertUser( void );
+void FatalAlertMessage( Str255 message, Str255 param2 );
+void FatalAlert( void );
+
+void AlertErrorMessage(Str255 message, Str255 param2);
+void AlertWarningMessage(Str255 message, Str255 param2);
+void AlertInfoMessage(Str255 message, Str255 param2);
+
+Handle StringInsert(Str255 baseString, Str255 subsString);
 
 
 /* Define HiWrd and LoWrd macros for efficiency. */
@@ -132,14 +169,84 @@ void main(void)
 	
 	UnloadSeg((Ptr) Initialize);	/* note that Initialize must not be in Main! */
 	
-	PickInputFile();
-	LoadInputFile();
-	PickOutputFile();
-	WriteOutputFile();
+	ShowMainWindow();
 	
-	ExitToShell();
+	EventLoop();					/* call the main event loop */
+}
+
+#pragma segment Main
+void ShowMainWindow(void) {
+	short	iType;
+	Handle	iHandle;
+	Rect	iRect;
+
+	mainWindow.ptr = GetNewDialog(130, NULL, (WindowPtr) -1);
 	
-	//EventLoop();					/* call the main event loop */
+	GetDItem(mainWindow.ptr, mwInputTitle, &iType, &iHandle, &iRect);
+	SetIText(iHandle, "\pHost IDs:");
+	GetDItem(mainWindow.ptr, mwOutputTitle, &iType, &iHandle, &iRect);
+	SetIText(iHandle, "\pRouter Config:");
+	
+	GetDItem(mainWindow.ptr, mwInputStatus, &iType, &mainWindow.inputStatus, &iRect);
+	GetDItem(mainWindow.ptr, mwOutputStatus, &iType, &mainWindow.outputStatus, &iRect);
+	GetDItem(mainWindow.ptr, mwDoItButton, &iType, &iHandle, &iRect);
+	mainWindow.doItButton = (ControlHandle) iHandle;
+	
+	UpdateMainWindow();
+	
+	ShowWindow(mainWindow.ptr);
+}
+
+#pragma segment Main
+void UpdateMainWindow(void) {
+	Boolean		isReady = true;
+	Str255		numStr;
+	Handle		formattedString;
+	Str255		displayString;
+	
+	if (gState.totalEntries == 0) {
+		SetIText(mainWindow.inputStatus, "\pNo input selected");
+		isReady = false;
+	} else {
+		NumToString(gState.totalEntries, numStr);
+		formattedString = StringInsert("\pLoaded ^0 entries", numStr);
+		BlockMove(*formattedString, displayString, GetHandleSize(formattedString));
+		
+		SetIText(mainWindow.inputStatus, displayString);
+	}
+	
+	if (gState.outFileSpec.vRefNum == 0) {
+		SetIText(mainWindow.outputStatus, "\pNo output selected");
+		isReady = false;
+	} else {
+		formattedString = StringInsert("\pFound IP tunnel on \"^0\"", gState.resourceName);
+		BlockMove(*formattedString, displayString, GetHandleSize(formattedString));
+		
+		SetIText(mainWindow.outputStatus, displayString);
+	}
+	
+	HiliteControl(mainWindow.doItButton, isReady ? 0 : 255);
+}
+
+#pragma segment Main
+void DoMainWindowEvent(short whichItem) {
+	switch (whichItem) {
+		case mwInputButton:
+			PickInputFile();
+			break;
+			
+		case mwOutputButton:
+			PickOutputFile();
+			break;
+			
+		case mwDoItButton:
+			if (WriteOutputFile()) {
+				AlertInfoMessage("\pSuccessfully saved changes.", nil);
+			}
+			break;
+	}
+	
+	UpdateMainWindow();
 }
 
 #pragma segment Main
@@ -151,12 +258,21 @@ void PickInputFile(void)
 	typeList[0] = 'TEXT';
 	StandardGetFile(NULL, 1, typeList, &reply);
 	if (!reply.sfGood) {
-		AlertMessageUser("\pCanceled", nil);
+		return;
 	}
 	
 	gState.inFileSpec = reply.sfFile;
+	
+	LoadInputFile();
 }
 
+#pragma segment Main
+void AbortInputFile(void) {
+	gState.inFileSpec.vRefNum = 0;
+	gState.inputString = nil;
+	gState.totalEntries = 0;
+	gState.totalTextLength = 0;
+}
 
 #pragma segment Main
 void LoadInputFile(void)
@@ -168,7 +284,9 @@ void LoadInputFile(void)
 	
 	error = FSpOpenDF(&gState.inFileSpec, fsRdPerm, &inFileRef);
 	if (error != noErr) {
-		AlertMessageUser("\pCant open input file", nil);
+		AlertErrorMessage("\pCant open input file", nil);
+		AbortInputFile();
+		return;
 	}
 	
 	SetFPos(inFileRef, fsFromStart, 0);
@@ -196,6 +314,8 @@ void LoadInputFile(void)
 		
 		gState.totalTextLength++;
 	}
+	
+	gState.totalEntries++;
 }
 
 #pragma segment Main
@@ -207,10 +327,66 @@ void PickOutputFile(void)
 	typeList[0] = 'ARSD';
 	StandardGetFile(NULL, 1, typeList, &reply);
 	if (!reply.sfGood) {
-		AlertMessageUser("\pCanceled", nil);
+		return;
 	}
 	
 	gState.outFileSpec = reply.sfFile;
+	
+	LoadOutputFile();
+}
+
+
+#pragma segment Main
+void AbortOutputFile(void) {
+	gState.outFileSpec.vRefNum = 0;
+	gState.resourceId = 0;
+	gState.resourceName[0] = 0;
+}
+
+#pragma segment Main
+void LoadOutputFile(void)
+{
+	short		outFileRef;
+	
+	Handle      existingRes;
+	short       existingResId;
+	ResType     existingResType;
+	Str255      existingResName;
+	
+	Str255 		numStr;
+	
+	outFileRef = FSpOpenResFile(&gState.outFileSpec, fsRdPerm);
+	if (outFileRef == -1) {
+		NumToString(ResError(), numStr);
+		AlertErrorMessage("\pError opening output file for writing ", numStr);
+		AbortOutputFile();
+		return;
+	}
+	
+	UseResFile(outFileRef);
+	
+	existingResId = GetTunnelResId();
+	if (existingResId == -1) {
+		NumToString(existingResId, numStr);
+		AlertErrorMessage("\pCould not find existing IPTunnel configuration", numStr);
+		AbortOutputFile();
+		return;
+	}
+	
+	existingRes = Get1Resource('acfg', existingResId);
+	if (existingRes == NULL) {
+		AlertErrorMessage("\pCould not find existing IPTunnel configuration", nil);
+		AbortOutputFile();
+		return;
+	}
+	
+	GetResInfo(existingRes, &existingResId, &existingResType, existingResName);
+	GetResAttrs(existingRes);
+	
+	gState.resourceId = existingResId;
+	BlockMove(existingResName, gState.resourceName, sizeof(Str255));
+	
+	CloseResFile(outFileRef);
 }
 
 #pragma segment Main
@@ -284,7 +460,7 @@ Handle FormatResource(void) {
 
 
 #pragma segment Main
-void WriteOutputFile(void)
+Boolean WriteOutputFile(void)
 {
 	Handle		writeData;
 	short		outFileRef;
@@ -302,21 +478,18 @@ void WriteOutputFile(void)
 	outFileRef = FSpOpenResFile(&gState.outFileSpec, fsRdWrPerm);
 	if (outFileRef == -1) {
 		NumToString(ResError(), numStr);
-		AlertMessageUser("\pError opening output file ", numStr);
+		AlertErrorMessage("\pError opening output file for writing ", numStr);
+		AbortOutputFile();
+		return false;
 	}
 	
 	UseResFile(outFileRef);
 	
-	existingResId = GetTunnelResId();
-	if (existingResId == -1) {
-		NumToString(existingResId, numStr);
-		AlertMessageUser("\pCould not find existing IPTunnel configuration", numStr);
-	}
-	
-	
-	existingRes = Get1Resource('acfg', existingResId);
+	existingRes = Get1Resource('acfg', gState.resourceId);
 	if (existingRes == NULL) {
-		AlertMessageUser("\pCould not find existing IPTunnel configuration", nil);
+		AlertErrorMessage("\pCould not find existing IPTunnel configuration", nil);
+		AbortOutputFile();
+		return false;
 	}
 	
 	GetResInfo(existingRes, &existingResId, &existingResType, existingResName);
@@ -329,7 +502,9 @@ void WriteOutputFile(void)
 		WriteResource(writeData);
 	} else {
 		NumToString(ResError(), numStr);
-		AlertMessageUser("\pError adding resource ", numStr);
+		AlertErrorMessage("\pError adding resource ", numStr);
+		AbortOutputFile();
+		return false;
 	}
 	
 	//Write out comment
@@ -348,6 +523,8 @@ void WriteOutputFile(void)
 	}
 	
 	CloseResFile(outFileRef);
+	
+	return true;
 }
 
 
@@ -443,7 +620,18 @@ void DoEvent(EventRecord *event)
 	Boolean		hit;
 	char		key;
 	Point		aPoint;
+	
+	DialogPtr	whichDialog;
+	short		whichItem;
 
+	if (IsDialogEvent(event)) {
+		if (DialogSelect(event, &whichDialog, &whichItem)) {
+			if (whichDialog == mainWindow.ptr) {
+				DoMainWindowEvent(whichItem);
+			}
+		}
+	}
+		
 	switch ( event->what ) {
 		case mouseDown:
 			part = FindWindow(event->where, &window);
@@ -701,17 +889,17 @@ Boolean DoCloseWindow(WindowPtr	window)
 #pragma segment Main
 void Terminate(void)
 {
-	WindowPtr	aWindow;
-	Boolean		closed;
-	
-	closed = true;
-	do {
-		aWindow = FrontWindow();				/* get the current front window */
-		if (aWindow != nil)
-			closed = DoCloseWindow(aWindow);	/* close this window */	
-	}
-	while (closed && (aWindow != nil));
-	if (closed)
+/*	WindowPtr	aWindow;*/
+/*	Boolean		closed;*/
+/*	*/
+/*	closed = true;*/
+/*	do {*/
+/*		aWindow = FrontWindow();				<¥ get the current front window ¥>*/
+/*		if (aWindow != nil)*/
+/*			closed = DoCloseWindow(aWindow);	<¥ close this window ¥>	*/
+/*	}*/
+/*	while (closed && (aWindow != nil));*/
+/*	if (closed)*/
 		ExitToShell();							/* exit if no cancellation */
 } /*Terminate*/
 
@@ -740,23 +928,23 @@ void Initialize(void)
 	 
 	SysEnvirons(kSysEnvironsVersion, &gMac);
 	
-	if (gMac.machineType < 0) AlertUser();
+	if (gMac.machineType < 0) FatalAlertMessage("\pOS too old.", nil);
 		
 	gHasWaitNextEvent = TrapAvailable(_WaitNextEvent, ToolTrap);
 	 
-	if ((long) GetApplLimit() - (long) ApplicationZone() < kMinHeap) AlertUser();
+	if ((long) GetApplLimit() - (long) ApplicationZone() < kMinHeap) FatalAlertMessage("\pNot enough RAM", nil);
 
 	PurgeSpace(&total, &contig);
-	if (total < kMinSpace) AlertUser();
+	if (total < kMinSpace) FatalAlertMessage("\pNot enough RAM", nil);
 	
 	/*
 	window = (WindowPtr) NewPtr(sizeof(WindowRecord));
-	if ( window == nil ) AlertUser();
+	if ( window == nil ) FatalAlertMessage("\pNot enough RAM", nil);
 	window = GetNewWindow(rWindow, (Ptr) window, (WindowPtr) -1);
 	*/
 	
 	menuBar = GetNewMBar(rMenuBar);			/* read menus into menu bar */
-	if ( menuBar == nil ) AlertUser();
+	if ( menuBar == nil ) FatalAlertMessage("\pNot enough RAM", nil);
 	SetMenuBar(menuBar);					/* install menus */
 	DisposeHandle(menuBar);
 	AppendResMenu(GetMenuHandle(mApple), 'DRVR');	/* add DA names to Apple menu */
@@ -805,23 +993,84 @@ Boolean TrapAvailable(short	tNumber, TrapType tType)
 
 
 #pragma segment Main
-void AlertMessageUser(Str255 message, Str255 param2)
+void FatalAlertMessage(Str255 message, Str255 param2)
 {
 	short		itemHit;
 
 	SetCursor(&qd.arrow);
 	ParamText(message, param2, nil, nil);
-	itemHit = Alert(rUserAlert, nil);
+	itemHit = Alert(rFatalAlert, nil);
 	ExitToShell();
 } /* AlertUser */
 
+
 #pragma segment Main
-void AlertUser()
+void AlertErrorMessage(Str255 message, Str255 param2)
 {
 	short		itemHit;
 
 	SetCursor(&qd.arrow);
-	ParamText("\pUnknown error", nil, nil, nil);
-	itemHit = Alert(rUserAlert, nil);
-	ExitToShell();
+	ParamText(message, param2, nil, nil);
+	itemHit = Alert(rFatalAlert, nil);
 } /* AlertUser */
+
+#pragma segment Main
+void AlertWarningMessage(Str255 message, Str255 param2)
+{
+	short		itemHit;
+
+	SetCursor(&qd.arrow);
+	ParamText(message, param2, nil, nil);
+	itemHit = Alert(rWarningAlert, nil);
+} /* AlertUser */
+
+#pragma segment Main
+void AlertInfoMessage(Str255 message, Str255 param2)
+{
+	short		itemHit;
+
+	SetCursor(&qd.arrow);
+	ParamText(message, param2, nil, nil);
+	itemHit = Alert(rInfoAlert, nil);
+} /* AlertUser */
+
+
+
+
+
+
+#pragma segment Main
+Handle StringInsert(Str255 baseString, Str255 subsString) {
+	Handle 	baseHandle;
+	Handle 	subsHandle;
+	Str15 	keyStr = "\p^0";
+	long	sizeL;
+	long	length;
+	
+	Str255	output;
+	Handle 	outputHand;
+	
+	sizeL = baseString[0];
+	PtrToHand(&baseString[1], &baseHandle, sizeL);
+	
+	sizeL = subsString[0];
+	PtrToHand(&subsString[1], &subsHandle, sizeL);
+	
+	ReplaceText(baseHandle, subsHandle, keyStr);
+	
+	length = GetHandleSize(baseHandle);
+	
+	if (length > 254) {
+		length = 254;
+	}
+	
+	//construct Pascal string
+	output[0] = (char) length;
+	BlockMove(*baseHandle, &output[1], length);
+	
+	//Have to return a handle
+	PtrToHand(&output, &outputHand, length + 1);
+	
+	//This function definitely leaks memory...
+	return outputHand;
+}

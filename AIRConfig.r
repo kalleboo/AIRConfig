@@ -15,12 +15,13 @@
 #include "AIRConfig.h"
 
 Include "Icon.rsrc";
+Include "Dialogs.rsrc";
 
 resource 'vers' (1) {
-	0x00, 0x01, release, 0x00,
+	0x00, 0x02, release, 0x00,
 	verUS,
-	"0.1",
-	"0.1 by @kalleboo@bitbang.social"
+	"0.2",
+	"0.2 by @kalleboo@bitbang.social"
 };
 
 
@@ -43,7 +44,7 @@ resource 'MENU' (mApple, preload) {
 	AllItems & ~MenuItem2,	/* Disable dashed line, enable About and DAs */
 	enabled, apple,
 	{
-		"About Sample…",
+		"About AIRConfig…",
 			noicon, nokey, nomark, plain;
 		"-",
 			noicon, nokey, nomark, plain
@@ -100,109 +101,6 @@ resource 'MENU' (mEdit, preload) {
 		"Clear",
 			noicon, nokey, nomark, plain
 	}
-};
-
-
-/* this ALRT and DITL are used as an About screen */
-
-resource 'ALRT' (rAboutAlert, purgeable) {
-	{40, 20, 160, 297},
-	rAboutAlert,
-	{ /* array: 4 elements */
-		/* [1] */
-		OK, visible, silent,
-		/* [2] */
-		OK, visible, silent,
-		/* [3] */
-		OK, visible, silent,
-		/* [4] */
-		OK, visible, silent
-	},
-	centerMainScreen
-};
-
-resource 'DITL' (rAboutAlert, purgeable) {
-	{ /* array DITLarray: 5 elements */
-		/* [1] */
-		{88, 185, 108, 265},
-		Button {
-			enabled,
-			"OK"
-		},
-		/* [2] */
-		{8, 8, 24, 214},
-		StaticText {
-			disabled,
-			"Simple Sample (Traffic Light)"
-		},
-		/* [3] */
-		{32, 8, 48, 296},
-		StaticText {
-			disabled,
-			"Copyright © Apple Computer 1989-1990"
-		},
-		/* [4] */
-		{56, 8, 72, 136},
-		StaticText {
-			disabled,
-			"Brought to you by:"
-		},
-		/* [5] */
-		{80, 24, 112, 167},
-		StaticText {
-			disabled,
-			"Macintosh Developer  Technical Support"
-		}
-	}
-};
-
-
-/* this ALRT and DITL are used as an error screen */
-
-resource 'ALRT' (rUserAlert, purgeable) {
-	{40, 20, 150, 260}, /* top left height width */
-	rUserAlert,
-	{ /* array: 4 elements */
-		/* [1] */
-		OK, visible, silent,
-		/* [2] */
-		OK, visible, silent,
-		/* [3] */
-		OK, visible, silent,
-		/* [4] */
-		OK, visible, silent
-	},
-	centerMainScreen
-};
-
-
-resource 'DITL' (rUserAlert, purgeable) {
-	{ /* array DITLarray: 3 elements */
-		/* [1] */
-		{80, 150, 105, 225},  /* top left bottom right */
-		Button {
-			enabled,
-			"OK"
-		},
-		/* [2] */
-		{10, 60, 60, 230},
-		StaticText {
-			disabled,
-			"Error occurred: ^0^1^2^3"
-		},
-		/* [3] */
-		{8, 8, 40, 40},
-		Icon {
-			disabled,
-			2
-		}
-	}
-};
-
-
-resource 'WIND' (rWindow, preload, purgeable) {
-	{60, 40, 290, 160},
-	noGrowDocProc, visible, noGoAway, 0x0, "Traffic", noAutoCenter
 };
 
 

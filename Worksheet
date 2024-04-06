@@ -5,6 +5,32 @@ make AIRConfig > AIRConfig.makeout
 
 
 AIRConfig.makeout
+SC C Compiler 8.8.4f1
+Copyright (C) 1985-1999 by Apple Computer, Inc.
+
+	gState.inFileSpec.vRefNum = nil;
+	                               ^
+File "AIRConfig.c"; line 271 #Error: cannot implicitly convert
+from: (void *)
+to  : (short)
+#-----------------------
+	gState.outFileSpec.vRefNum = nil;
+	                                ^
+File "AIRConfig.c"; line 341 #Error: cannot implicitly convert
+from: (void *)
+to  : (short)
+#-----------------------
+	if (gMac.machineType < 0) AlertUser();
+	                          ^
+File "AIRConfig.c"; line 931 #Error: function 'AlertUser' has no prototype
+#-----------------------
+### MPW Shell - Execution of AIRConfig.makeout terminated.
+
+
+
+
+
+
 
 
 Move AIRConfig 'AIRConfig for GlobalTalk 0.1'

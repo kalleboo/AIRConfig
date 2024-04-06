@@ -14,16 +14,16 @@ If you want to prepare it yourself: on a modern computer, open the sheet, go to 
 
 2. Make a copy of your Apple Internet Router config file.
 3. Open AIRConfig
-4. Select the text file with the Host IDs, click OK
-5. Select the copy of the config file, click OK. AIRConfig will modify this file in place.
-6. Assuming there were no errors, AIRConfig will quit.
-7. Open the copy of the config file in Router Manager to make sure it is not corrupted.
-8. Now use Router Manager to switch config files to the new, modified one. (stop the router and Set Startup to the new config file.)
+4. Click "Select File" next to Host IDs, select the text file with the Host IDs, click OK. It will show you how many IDs were found.
+5. Click "Select File" next to Router Config, select the copy of the config file, click OK. AIRConfig will modify this file in place so use a copy. It will show you which port it found an IP tunnel on.
+6. Press "Convert". You should get a success dialog.
+8. You can now quit AIRConfig.
+9. Open the copy of the config file in Router Manager to make sure it is not corrupted.
+10. Now use Router Manager to switch config files to the new, modified one. (stop the router and Set Startup to the new config file.)
 
 
 Please report any successes and failures to @kalleboo@bitbang.social !!!
 
-Apologies to the IconFactory for ripping off your icon. It's for a good cause!!
 
 
 Future plans if this works out:
