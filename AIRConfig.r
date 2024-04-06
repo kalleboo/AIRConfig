@@ -18,10 +18,10 @@ Include "Icon.rsrc";
 Include "Dialogs.rsrc";
 
 resource 'vers' (1) {
-	0x00, 0x02, release, 0x00,
+	0x00, 0x03, release, 0x00,
 	verUS,
-	"0.2",
-	"0.2 by @kalleboo@bitbang.social"
+	"0.3",
+	"0.3 by @kalleboo@bitbang.social"
 };
 
 
@@ -45,6 +45,8 @@ resource 'MENU' (mApple, preload) {
 	enabled, apple,
 	{
 		"About AIRConfig…",
+			noicon, nokey, nomark, plain;
+		"AIRConfig Help…",
 			noicon, nokey, nomark, plain;
 		"-",
 			noicon, nokey, nomark, plain

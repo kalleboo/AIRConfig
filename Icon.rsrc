@@ -1,8 +1,9 @@
 
 data 'BNDL' (128) {
-	$"4149 5263 0000 0001 4652 4546 0002 0000"            /* AIRc....FREF.... */
-	$"0080 0001 0081 0002 0082 4943 4E23 0002"            /* .€......‚ICN#.. */
-	$"0000 0080 0001 0000 0002 0000"                      /* ...€........ */
+	$"4149 5263 0000 0001 4652 4546 0003 0000"            /* AIRc....FREF.... */
+	$"0080 0001 0081 0002 0082 0003 0083 4943"            /* .€......‚...ƒIC */
+	$"4E23 0003 0000 0080 0001 0000 0002 0000"            /* N#.....€........ */
+	$"0003 0084"                                          /* ...„ */
 };
 
 data 'AIRc' (0, "Owner resource") {
@@ -19,6 +20,10 @@ data 'FREF' (129) {
 
 data 'FREF' (130) {
 	$"4152 5344 0002 00"                                  /* ARSD... */
+};
+
+data 'FREF' (131) {
+	$"7072 6566 0003 00"                                  /* pref... */
 };
 
 data 'icl4' (128) {
@@ -54,6 +59,41 @@ data 'icl4' (128) {
 	$"0000 0000 0000 0000 000B 1111 1221 1B00"            /* .............!.. */
 	$"0000 0000 0000 0000 0000 BB11 121B B000"            /* ..........»...°. */
 	$"0000 0000 0000 0000 0000 00BB BBB0 0000"            /* ...........»»°.. */
+};
+
+data 'icl4' (132) {
+	$"0000 FFFF FFFF FFFF FFFF FFFF FFFF FFFF"            /* ..ÿÿÿÿÿÿÿÿÿÿÿÿÿÿ */
+	$"0000 F000 0000 00FF 0000 0000 0000 000F"            /* ..ð....ÿ........ */
+	$"0000 F00C 0C0C 0FDC FC0C 0C0C 0C0C 0CCF"            /* ..ð....Üü......Ï */
+	$"0000 F0C0 C0C0 FDCD CFC0 C0C0 C0C0 C0CF"            /* ..ðÀÀÀýÍÏÀÀÀÀÀÀÏ */
+	$"0000 F00C 0C0F DCDC DCFC 0C0C 0C0C 0CCF"            /* ..ð...ÜÜÜü.....Ï */
+	$"0000 F0C0 C0FF FFCD FFF0 C0C0 C0C0 C0CF"            /* ..ðÀÀÿÿÍÿðÀÀÀÀÀÏ */
+	$"0000 F00C 0F0C 0FDC FC0C 0C0C 0C0C 0CCF"            /* ..ð....Üü......Ï */
+	$"0000 F0C0 FFC0 CFCD F0C0 C0C0 C0C0 C0CF"            /* ..ðÀÿÀÏÍðÀÀÀÀÀÀÏ */
+	$"0000 F00F DF0C 0FDC FC0C 0C0C 0C0C 0CCF"            /* ..ð.ß..Üü......Ï */
+	$"0000 F0FD CFFF FFCD FFFF C0C0 C0C0 C0CF"            /* ..ðýÏÿÿÍÿÿÀÀÀÀÀÏ */
+	$"0000 FFDC DCDC DFDC FCDC FF0C 0C0C 0CCF"            /* ..ÿÜÜÜßÜüÜÿ....Ï */
+	$"0000 FFCD CDCD CFCD FDCD CFC0 C0C0 C0CF"            /* ..ÿÍÍÍÏÍýÍÏÀÀÀÀÏ */
+	$"0000 F0FC DFFF FFDC FFFF DCFC 0CFC 0CCF"            /* ..ðüßÿÿÜÿÿÜü.ü.Ï */
+	$"0000 F0CF CFC0 CFCD F0CF CDF0 C0FF C0CF"            /* ..ðÏÏÀÏÍðÏÍðÀÿÀÏ */
+	$"0000 F00C FF0C 0FDC FC0F DCFC 0CFC FCCF"            /* ..ð.ÿ..Üü.Üü.üüÏ */
+	$"FFFF FFFF FFC0 CFCD FFFF CDFF FFFD CFCF"            /* ÿÿÿÿÿÀÏÍÿÿÍÿÿýÏÏ */
+	$"F0C0 C0C0 FF0C 0CFC DCDF DCFC DCDC DCFF"            /* ðÀÀÀÿ..üÜßÜüÜÜÜÿ */
+	$"FC0C FF0C FCF0 C0FF CDCF CDFD CDCD CDFF"            /* ü.ÿ.üðÀÿÍÏÍýÍÍÍÿ */
+	$"F0CF 00F0 FCCF 0C0C FFFF DCFF FFFC DFCF"            /* ðÏ.ðüÏ..ÿÿÜÿÿüßÏ */
+	$"FCF0 FF0F FFFF F0C0 C0CF CDF0 C0FD F0CF"            /* üðÿ.ÿÿðÀÀÏÍðÀýðÏ */
+	$"F0F0 FF0F C0C0 FC0C 0C0F DCFC 0CFF 0CCF"            /* ððÿ.ÀÀü...Üü.ÿ.Ï */
+	$"FC0F 00FC 0C0C F0C0 C0CF CDF0 C0F0 C0CF"            /* ü..ü..ðÀÀÏÍðÀðÀÏ */
+	$"F0C0 FFC0 C0C0 FC0C FFFF DCFF FF0C 0CCF"            /* ðÀÿÀÀÀü.ÿÿÜÿÿ..Ï */
+	$"FC0C 0C0C 0C0C F0C0 CFCD CDCD F0C0 C0CF"            /* ü.....ðÀÏÍÍÍðÀÀÏ */
+	$"F0C0 FFC0 C0C0 FC0C 0CFC DCDF 0C0C 0CCF"            /* ðÀÿÀÀÀü..üÜß...Ï */
+	$"FC0F 00FC 0C0C F0C0 C0CF CDF0 C0C0 C0CF"            /* ü..ü..ðÀÀÏÍðÀÀÀÏ */
+	$"F0F0 000F C0C0 FCCC CCCC FFCC CCCC CCCF"            /* ðð..ÀÀüÌÌÌÿÌÌÌÌÏ */
+	$"FCF0 000F 0C0C FFFF FFFF FFFF FFFF FFFF"            /* üð....ÿÿÿÿÿÿÿÿÿÿ */
+	$"F0CF 00F0 C0C0 F000 0000 0000 0000 0000"            /* ðÏ.ðÀÀð......... */
+	$"FC0C FF0C 0C0C F000 0000 0000 0000 0000"            /* ü.ÿ...ð......... */
+	$"F0C0 C0C0 C0C0 F000 0000 0000 0000 0000"            /* ðÀÀÀÀÀð......... */
+	$"FFFF FFFF FFFF F000 0000 0000 0000 0000"            /* ÿÿÿÿÿÿð......... */
 };
 
 data 'icl8' (128) {
@@ -123,6 +163,73 @@ data 'icl8' (128) {
 	$"0000 0000 0000 5E5E 5E5E 5E00 0000 0000"            /* ......^^^^^..... */
 };
 
+data 'icl8' (132) {
+	$"0000 0000 FFFF FFFF FFFF FFFF FFFF FFFF"            /* ....ÿÿÿÿÿÿÿÿÿÿÿÿ */
+	$"FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF"            /* ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ */
+	$"0000 0000 FF00 0000 0000 0000 0000 FFFF"            /* ....ÿ.........ÿÿ */
+	$"0000 0000 0000 0000 0000 0000 0000 00FF"            /* ...............ÿ */
+	$"0000 0000 FF00 F6F6 F6F6 F6F6 F6FF 2A7F"            /* ....ÿ.öööööööÿ*. */
+	$"FFF6 F6F6 F6F6 F6F6 F6F6 F6F6 F6F6 F7FF"            /* ÿööööööööööööö÷ÿ */
+	$"0000 0000 FF00 F6F6 F6F6 F6F6 FF2A 2A2A"            /* ....ÿ.ööööööÿ*** */
+	$"7FFF F6F6 F6F6 F6F6 F6F6 F6F6 F6F6 F7FF"            /* .ÿöööööööööööö÷ÿ */
+	$"0000 0000 FF00 F6F6 F6F6 F6FF 2A2A 2A2A"            /* ....ÿ.öööööÿ**** */
+	$"2A7F FFF6 F6F6 F6F6 F6F6 F6F6 F6F6 F7FF"            /* *.ÿööööööööööö÷ÿ */
+	$"0000 0000 FF00 F6F6 F6F6 FFFF FFFF 2A7F"            /* ....ÿ.ööööÿÿÿÿ*. */
+	$"FFFF FFFF F6F6 F6F6 F6F6 F6F6 F6F6 F7FF"            /* ÿÿÿÿöööööööööö÷ÿ */
+	$"0000 0000 FF00 F6F6 F6FF F6F6 F6FF 2A7F"            /* ....ÿ.öööÿöööÿ*. */
+	$"FFF6 F6F6 F6F6 F6F6 F6F6 F6F6 F6F6 F7FF"            /* ÿööööööööööööö÷ÿ */
+	$"0000 0000 FF00 F6F6 FFFF F6F6 F6FF 2A7F"            /* ....ÿ.ööÿÿöööÿ*. */
+	$"FFF6 F6F6 F6F6 F6F6 F6F6 F6F6 F6F6 F7FF"            /* ÿööööööööööööö÷ÿ */
+	$"0000 0000 FF00 F6FF 7FFF F6F6 F6FF 2A7F"            /* ....ÿ.öÿ.ÿöööÿ*. */
+	$"FFF6 F6F6 F6F6 F6F6 F6F6 F6F6 F6F6 F7FF"            /* ÿööööööööööööö÷ÿ */
+	$"0000 0000 FF00 FF2A 7FFF FFFF FFFF 2A7F"            /* ....ÿ.ÿ*.ÿÿÿÿÿ*. */
+	$"FFFF FFFF F6F6 F6F6 F6F6 F6F6 F6F6 F7FF"            /* ÿÿÿÿöööööööööö÷ÿ */
+	$"0000 0000 FFFF 2A2A 2A2A 2A2A 2AFF 2A7F"            /* ....ÿÿ*******ÿ*. */
+	$"FF2A 2A7F FFFF F6F6 F6F6 F6F6 F6F6 F7FF"            /* ÿ**.ÿÿöööööööö÷ÿ */
+	$"0000 0000 FFFF 2A2A 7F7F 7F7F 7FFF 2A7F"            /* ....ÿÿ**.....ÿ*. */
+	$"FF7F 7F2A 7FFF F6F6 F6F6 F6F6 F6F6 F7FF"            /* ÿ..*.ÿöööööööö÷ÿ */
+	$"0000 0000 FF00 FF2A 7FFF FFFF FFFF 2A7F"            /* ....ÿ.ÿ*.ÿÿÿÿÿ*. */
+	$"FFFF FF7F 2A7F FFF6 F6F6 FFF6 F6F6 F7FF"            /* ÿÿÿ.*.ÿöööÿööö÷ÿ */
+	$"0000 0000 FF00 F6FF 7FFF F6F6 F6FF 2A7F"            /* ....ÿ.öÿ.ÿöööÿ*. */
+	$"FFF6 F6FF 2A7F FFF6 F6F6 FFFF F6F6 F7FF"            /* ÿööÿ*.ÿöööÿÿöö÷ÿ */
+	$"0000 0000 FF00 F6F6 FFFF F6F6 F6FF 2A7F"            /* ....ÿ.ööÿÿöööÿ*. */
+	$"FFF6 F6FF 2A7F FFF6 F6F6 FF7F FFF6 F7FF"            /* ÿööÿ*.ÿöööÿ.ÿö÷ÿ */
+	$"FFFF FFFF FFFF FFFF FFFF F6F6 F6FF 2A7F"            /* ÿÿÿÿÿÿÿÿÿÿöööÿ*. */
+	$"FFFF FFFF 2A7F FFFF FFFF FF2A 7FFF F7FF"            /* ÿÿÿÿ*.ÿÿÿÿÿ*.ÿ÷ÿ */
+	$"FFF5 F5F5 F5F5 F5F5 FFFF F6F6 F6F6 FF2A"            /* ÿõõõõõõõÿÿööööÿ* */
+	$"2A2A 2AFF 2A7F FF2A 2A2A 2A2A 2A7F FFFF"            /* ***ÿ*.ÿ******.ÿÿ */
+	$"FFF5 F5F5 FFFF F5F5 FFF6 FFF6 F6F6 FFFF"            /* ÿõõõÿÿõõÿöÿöööÿÿ */
+	$"7F7F 7FFF 2A7F FF7F 7F7F 7F2A 2A7F FFFF"            /* ...ÿ*.ÿ....**.ÿÿ */
+	$"FFF5 F5FF 0000 FFF5 FFF6 F6FF F6F6 F6F6"            /* ÿõõÿ..ÿõÿööÿöööö */
+	$"FFFF FFFF 2A7F FFFF FFFF FF2A 7FFF F7FF"            /* ÿÿÿÿ*.ÿÿÿÿÿ*.ÿ÷ÿ */
+	$"FFF5 FF00 FFFF 00FF FFFF FFFF FFF6 F6F6"            /* ÿõÿ.ÿÿ.ÿÿÿÿÿÿööö */
+	$"F6F6 F6FF 2A7F FFF6 F6F6 FF7F FFF6 F7FF"            /* öööÿ*.ÿöööÿ.ÿö÷ÿ */
+	$"FFF5 FF00 FFFF 00FF F5F5 F5F5 FFF6 F6F6"            /* ÿõÿ.ÿÿ.ÿõõõõÿööö */
+	$"F6F6 F6FF 2A7F FFF6 F6F6 FFFF F6F6 F7FF"            /* öööÿ*.ÿöööÿÿöö÷ÿ */
+	$"FFF5 F5FF 0000 FFF5 F5F5 F5F5 FFF6 F6F6"            /* ÿõõÿ..ÿõõõõõÿööö */
+	$"F6F6 F6FF 2A7F FFF6 F6F6 FFF6 F6F6 F7FF"            /* öööÿ*.ÿöööÿööö÷ÿ */
+	$"FFF5 F5F5 FFFF F5F5 F5F5 F5F5 FFF6 F6F6"            /* ÿõõõÿÿõõõõõõÿööö */
+	$"FFFF FFFF 2A7F FFFF FFFF F6F6 F6F6 F7FF"            /* ÿÿÿÿ*.ÿÿÿÿöööö÷ÿ */
+	$"FFF5 F5F5 F5F5 F5F5 F5F5 F5F5 FFF6 F6F6"            /* ÿõõõõõõõõõõõÿööö */
+	$"F6FF 2A2A 2A2A 7F7F FFF6 F6F6 F6F6 F7FF"            /* öÿ****..ÿööööö÷ÿ */
+	$"FFF5 F5F5 FFFF F5F5 F5F5 F5F5 FFF6 F6F6"            /* ÿõõõÿÿõõõõõõÿööö */
+	$"F6F6 FF2A 2A2A 7FFF F6F6 F6F6 F6F6 F7FF"            /* ööÿ***.ÿöööööö÷ÿ */
+	$"FFF5 F5FF 0000 FFF5 F5F5 F5F5 FFF6 F6F6"            /* ÿõõÿ..ÿõõõõõÿööö */
+	$"F6F6 F6FF 2A7F FFF6 F6F6 F6F6 F6F6 F7FF"            /* öööÿ*.ÿööööööö÷ÿ */
+	$"FFF5 FF00 0000 00FF F5F5 F5F5 FFF7 F7F7"            /* ÿõÿ....ÿõõõõÿ÷÷÷ */
+	$"F7F7 F7F7 FFFF F7F7 F7F7 F7F7 F7F7 F7FF"            /* ÷÷÷÷ÿÿ÷÷÷÷÷÷÷÷÷ÿ */
+	$"FFF5 FF00 0000 00FF F5F5 F5F5 FFFF FFFF"            /* ÿõÿ....ÿõõõõÿÿÿÿ */
+	$"FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF"            /* ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ */
+	$"FFF5 F5FF 0000 FFF5 F5F5 F5F5 FF00 0000"            /* ÿõõÿ..ÿõõõõõÿ... */
+	$"0000 0000 0000 0000 0000 0000 0000 0000"            /* ................ */
+	$"FFF5 F5F5 FFFF F5F5 F5F5 F5F5 FF00 0000"            /* ÿõõõÿÿõõõõõõÿ... */
+	$"0000 0000 0000 0000 0000 0000 0000 0000"            /* ................ */
+	$"FFF5 F5F5 F5F5 F5F5 F5F5 F5F5 FF00 0000"            /* ÿõõõõõõõõõõõÿ... */
+	$"0000 0000 0000 0000 0000 0000 0000 0000"            /* ................ */
+	$"FFFF FFFF FFFF FFFF FFFF FFFF FF00 0000"            /* ÿÿÿÿÿÿÿÿÿÿÿÿÿ... */
+	$"0000 0000 0000 0000 0000 0000 0000 0000"            /* ................ */
+};
+
 data 'ICN#' (128) {
 	$"0000 05C0 0000 3E20 0000 4A60 0000 9E60"            /* ...À..> ..J`..ž` */
 	$"0000 B540 0000 5940 0000 2F60 0000 2D58"            /* ..µ@..Y@../`..-X */
@@ -142,11 +249,37 @@ data 'ICN#' (128) {
 	$"3800 3FFE 0000 1FFC 0000 0FF8 0000 03E0"            /* 8.?þ...ü...ø...à */
 };
 
+data 'ICN#' (132) {
+	$"0FFF FFFF 0803 0001 0804 8001 0808 4001"            /* .ÿÿÿ......€...@. */
+	$"0810 2001 083C F001 0844 8001 08C4 8001"            /* .. ..<ð..D€..Ä€. */
+	$"0944 8001 0A7C F001 0C04 8C01 0C04 8401"            /* ÆD€..|ð...Œ...„. */
+	$"0A7C F221 0944 9231 08C4 9229 FFC4 F3E5"            /* .|ò!ÆD’1.Ä’)ÿÄóå */
+	$"80C2 1203 8CA3 1203 9290 F3E5 ADF8 1229"            /* €Â..Œ£..’óå­ø.) */
+	$"AD08 1231 9208 1221 8C08 F3C1 8008 4081"            /* ­..1’..!Œ.óÁ€.@ */
+	$"8C08 2101 9208 1201 A108 0C01 A10F FFFF"            /* Œ.!.’...¡...¡.ÿÿ */
+	$"9208 0000 8C08 0000 8008 0000 FFF8 0000"            /* ’...Œ...€...ÿø.. */
+	$"0FFF FFFF 0FFF FFFF 0FFF FFFF 0FFF FFFF"            /* .ÿÿÿ.ÿÿÿ.ÿÿÿ.ÿÿÿ */
+	$"0FFF FFFF 0FFF FFFF 0FFF FFFF 0FFF FFFF"            /* .ÿÿÿ.ÿÿÿ.ÿÿÿ.ÿÿÿ */
+	$"0FFF FFFF 0FFF FFFF 0FFF FFFF 0FFF FFFF"            /* .ÿÿÿ.ÿÿÿ.ÿÿÿ.ÿÿÿ */
+	$"0FFF FFFF 0FFF FFFF 0FFF FFFF FFFF FFFF"            /* .ÿÿÿ.ÿÿÿ.ÿÿÿÿÿÿÿ */
+	$"FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF"            /* ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ */
+	$"FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF"            /* ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ */
+	$"FFFF FFFF FFFF FFFF FFFF FFFF FFFF FFFF"            /* ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ */
+	$"FFF8 0000 FFF8 0000 FFF8 0000 FFF8 0000"            /* ÿø..ÿø..ÿø..ÿø.. */
+};
+
 data 'ics#' (128) {
 	$"03CC 06A8 0B28 05EC 07AB 0210 0400 0400"            /* .Ì.¨.(.ì.«...... */
 	$"C800 C800 C800 C800 D800 F800 A800 9800"            /* È.È.È.È.Ø.ø.¨.˜. */
 	$"1FFC 1FF8 0FF8 07FC 07FF 03FF 07FF 87FF"            /* .ü.ø.ø.ü.ÿ.ÿ.ÿ‡ÿ */
 	$"CFFF CFFF DFFF FFFF FFFF FFFF FFFF FFFF"            /* ÏÿÏÿßÿÿÿÿÿÿÿÿÿÿÿ */
+};
+
+data 'ics#' (132) {
+	$"0FFF 0881 09C1 0A81 0FE1 FE91 8695 957F"            /* .ÿ.ÆÁ..áþ‘†••. */
+	$"BF95 90B9 8091 90FF A880 9080 8080 FF80"            /* ¿•¹€‘ÿ¨€€€€ÿ€ */
+	$"0FFF 0FFF 0FFF 0FFF 0FFF FFFF FFFF FFFF"            /* .ÿ.ÿ.ÿ.ÿ.ÿÿÿÿÿÿÿ */
+	$"FFFF FFFF FFFF FFFF FF80 FF80 FF80 FF80"            /* ÿÿÿÿÿÿÿÿÿ€ÿ€ÿ€ÿ€ */
 };
 
 data 'ics4' (128) {
@@ -158,6 +291,17 @@ data 'ics4' (128) {
 	$"EF0C 2111 1111 2221 EFCC 2111 1111 2221"            /* ï.!..."!ïÌ!..."! */
 	$"EFCD 2111 1111 2221 EEFD 2111 1111 2221"            /* ïÍ!..."!îý!..."! */
 	$"EDF0 2111 1111 2221 EDDF 2111 1111 2221"            /* íð!..."!íß!..."! */
+};
+
+data 'ics4' (132) {
+	$"0000 FFFF FFFF FFFF 0000 F000 F000 00CF"            /* ..ÿÿÿÿÿÿ..ð.ð..Ï */
+	$"0000 F0CF FF0C 0CCF 0000 F0F0 F0C0 C0CF"            /* ..ðÏÿ..Ï..ðððÀÀÏ */
+	$"0000 FFFF FFFC 0CCF FFFF FFF0 F0CF C0CF"            /* ..ÿÿÿü.ÏÿÿÿððÏÀÏ */
+	$"F0C0 CFFC FC0F 0FCF FC0F 0FCF CFFF FFFF"            /* ðÀÏüü..Ïü..ÏÏÿÿÿ */
+	$"F0FF FFFF FC0F 0FCF FC0F 0C0C F0FF F0CF"            /* ðÿÿÿü..Ïü...ðÿðÏ */
+	$"F0C0 C0C0 FCCF CCCF FC0F 0C0C FFFF FFFF"            /* ðÀÀÀüÏÌÏü...ÿÿÿÿ */
+	$"F0F0 F0C0 F000 0000 FC0F 0C0C F000 0000"            /* ðððÀð...ü...ð... */
+	$"F0C0 C0C0 F000 0000 FFFF FFFF F000 0000"            /* ðÀÀÀð...ÿÿÿÿð... */
 };
 
 data 'ics8' (128) {
@@ -177,6 +321,25 @@ data 'ics8' (128) {
 	$"FBFB FF7F 100A 0303 030A 0A0A 1010 100A"            /* ûûÿ............. */
 	$"FBF9 FF00 100A 0303 030A 0A0A 1010 100A"            /* ûùÿ............. */
 	$"FBF9 F9FF 100A 0303 030A 0A0A 1010 100A"            /* ûùùÿ............ */
+};
+
+data 'ics8' (132) {
+	$"0000 0000 FFFF FFFF FFFF FFFF FFFF FFFF"            /* ....ÿÿÿÿÿÿÿÿÿÿÿÿ */
+	$"0000 0000 FF00 0000 FF00 0000 0000 F7FF"            /* ....ÿ...ÿ.....÷ÿ */
+	$"0000 0000 FF00 F6FF FFFF F6F6 F6F6 F7FF"            /* ....ÿ.öÿÿÿöööö÷ÿ */
+	$"0000 0000 FF00 FFF6 FFF6 F6F6 F6F6 F7FF"            /* ....ÿ.ÿöÿööööö÷ÿ */
+	$"0000 0000 FFFF FFFF FFFF FFF6 F6F6 F7FF"            /* ....ÿÿÿÿÿÿÿööö÷ÿ */
+	$"FFFF FFFF FFFF FFF6 FFF6 F6FF F6F6 F7FF"            /* ÿÿÿÿÿÿÿöÿööÿöö÷ÿ */
+	$"FFF5 F5F5 F5FF FFF6 FFF6 F6FF F6FF F7FF"            /* ÿõõõõÿÿöÿööÿöÿ÷ÿ */
+	$"FFF5 F5FF F5FF F6FF F6FF FFFF FFFF FFFF"            /* ÿõõÿõÿöÿöÿÿÿÿÿÿÿ */
+	$"FFF5 FFFF FFFF FFFF FFF6 F6FF F6FF F7FF"            /* ÿõÿÿÿÿÿÿÿööÿöÿ÷ÿ */
+	$"FFF5 F5FF F5F5 F5F5 FFF6 FFFF FFF6 F7FF"            /* ÿõõÿõõõõÿöÿÿÿö÷ÿ */
+	$"FFF5 F5F5 F5F5 F5F5 FFF7 F7FF F7F7 F7FF"            /* ÿõõõõõõõÿ÷÷ÿ÷÷÷ÿ */
+	$"FFF5 F5FF F5F5 F5F5 FFFF FFFF FFFF FFFF"            /* ÿõõÿõõõõÿÿÿÿÿÿÿÿ */
+	$"FFF5 FF00 FFF5 F5F5 FF00 0000 0000 0000"            /* ÿõÿ.ÿõõõÿ....... */
+	$"FFF5 F5FF F5F5 F5F5 FF00 0000 0000 0000"            /* ÿõõÿõõõõÿ....... */
+	$"FFF5 F5F5 F5F5 F5F5 FF00 0000 0000 0000"            /* ÿõõõõõõõÿ....... */
+	$"FFFF FFFF FFFF FFFF FF00 0000 0000 0000"            /* ÿÿÿÿÿÿÿÿÿ....... */
 };
 
 data 'ICON' (128) {

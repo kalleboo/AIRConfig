@@ -25,6 +25,8 @@
 #define	rFatalAlert	129				/* error user alert */
 #define	rWarningAlert	131				/* error user alert */
 #define	rInfoAlert	132				/* error user alert */
+#define	rHelpAlert	133				/* error user alert */
+#define	rHelpDialog	133				/* error user alert */
 
 /* kSysEnvironsVersion is passed to SysEnvirons to tell it which version of the
    SysEnvRec we understand. */
@@ -47,6 +49,7 @@
 
 #define	mApple					128		/* Apple menu */
 #define	iAbout					1
+#define	iHelp					2
 
 #define	mFile					129		/* File menu */
 #define	iNew					1
