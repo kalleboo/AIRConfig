@@ -11,12 +11,12 @@
 /*	These #defines correspond to values defined in the Pascal source code.
 	Sample.c and Sample.r include this file. */
 	
-#define kMinSize	23				/* application's minimum size (in K) */
+#define kMinSize	50				/* application's minimum size (in K) */
 
 /*	We made the preferred size bigger than the minimum size by 12K, so that
 	there would be even more room for the scrap, FKEYs, etc. */
 
-#define kPrefSize	35				/* application's preferred size (in K) */
+#define kPrefSize	100				/* application's preferred size (in K) */
 
 #define	rMenuBar	128				/* application's menu bar */
 #define	rAboutAlert	128				/* about alert */

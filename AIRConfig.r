@@ -14,13 +14,13 @@
 
 #include "AIRConfig.h"
 
-Include "Icon.rsrc"; //'ICN#' ( 128 ) as 'ICN#' ( 128 );
+Include "Icon.rsrc";
 
 resource 'vers' (1) {
-	0x02, 0x00, release, 0x00,
+	0x00, 0x01, release, 0x00,
 	verUS,
-	"1.03",
-	"1.03, Copyright \251 Apple Computer, Inc. 1989-1990"
+	"0.1",
+	"0.1 by @kalleboo@bitbang.social"
 };
 
 

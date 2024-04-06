@@ -43,3 +43,4 @@ AIRConfig		ÄÄ {sampObjs} AIRConfig.r
 	Link -o {Targ} {sampObjs} {sampLibs} {SymOptions}
 	Rez -rd -o {Targ} AIRConfig.r -append
 	SetFile {Targ} -t APPL -c 'AIRc' -a B
+	#Move AIRConfig 'AIRConfig for GlobalTalk'

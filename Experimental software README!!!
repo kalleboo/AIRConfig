@@ -1,0 +1,35 @@
+IMPORTANT INFORMATION
+
+This is the very first attempt at this. DO THIS AT YOUR OWN RISK. ALWAYS WORK ON A BACKUP COPY OF YOUR CONFIG FILE AS IT WILL BE MODIFIED IN-PLACE.
+
+Welcome to AIRConfig for GlobalTalk. This is an application that takes a list of Host IDs in a text file, and puts it into a Apple Internet Router config file, so you don't have to keep merging the new entries manually (and miss any changes when someones IP changes)
+
+This is an early experimental version and it is likely to break things.
+
+How to use it:
+
+1. Prepare a list of Host IDs. One is provided here, I'll try to update it daily. 
+
+If you want to prepare it yourself: on a modern computer, open the sheet, go to the "Just the facts" tab, and select all the IPs. Copy and paste them into a text file. Remove any junk that will not work in AIR (that guy at the end with a port on his IP, and the one that has a slash and stuff in it). The IPs can be delimited by newlines (CR, LR, CRLF all fine), commas, semicolons or tabs. Transfer this file to your router machine.
+
+2. Make a copy of your Apple Internet Router config file.
+3. Open AIRConfig
+4. Select the text file with the Host IDs, click OK
+5. Select the copy of the config file, click OK. AIRConfig will modify this file in place.
+6. Assuming there were no errors, AIRConfig will quit.
+7. Open the copy of the config file in Router Manager to make sure it is not corrupted.
+8. Now use Router Manager to switch config files to the new, modified one. (stop the router and Set Startup to the new config file.)
+
+
+Please report any successes and failures to @kalleboo@bitbang.social !!!
+
+Apologies to the IconFactory for ripping off your icon. It's for a good cause!!
+
+
+Future plans if this works out:
+¥ A UI to config the files to modify and then a "headless" mode where it can be run automated
+¥ Some way to automate fetching the list of Host IDs (even if this is just AppleScripting Fetch or something)
+
+
+
+

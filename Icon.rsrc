@@ -1,7 +1,8 @@
 
 data 'BNDL' (128) {
-	$"4149 5263 0000 0001 4652 4546 0000 0000"            /* AIRc....FREF.... */
-	$"0080 4943 4E23 0000 0000 0080"                      /* .ÄICN#.....Ä */
+	$"4149 5263 0000 0001 4652 4546 0002 0000"            /* AIRc....FREF.... */
+	$"0080 0001 0081 0002 0082 4943 4E23 0002"            /* .Ä...Å...ÇICN#.. */
+	$"0000 0080 0001 0000 0002 0000"                      /* ...Ä........ */
 };
 
 data 'AIRc' (0, "Owner resource") {
@@ -10,6 +11,14 @@ data 'AIRc' (0, "Owner resource") {
 
 data 'FREF' (128) {
 	$"4150 504C 0000 00"                                  /* APPL... */
+};
+
+data 'FREF' (129) {
+	$"5445 5854 0001 00"                                  /* TEXT... */
+};
+
+data 'FREF' (130) {
+	$"4152 5344 0002 00"                                  /* ARSD... */
 };
 
 data 'icl4' (128) {
@@ -170,3 +179,7 @@ data 'ics8' (128) {
 	$"FBF9 F9FF 100A 0303 030A 0A0A 1010 100A"            /* ˚˘˘ˇ............ */
 };
 
+The lower-part was clicked with no modifiers;
+but also the part of script related to Command-Option-S shortcut is executed
+as you can see:
+The shortcut Command-Option-S was pressed;
