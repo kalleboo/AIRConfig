@@ -14,18 +14,18 @@ This was a project to automate that task, so you just give it a text file of add
 
 ![airconfig1 0](https://github.com/kalleboo/AIRConfig/assets/304806/994a06db-f6c6-49f6-a028-58f3594f3f29)
 
-## Disclaimer
-
-This is the first Classic Mac application I've written in C. It was a learning experience. It was done over nights and weekends when I had some free time, and the source code is a mess that was written solely to accomplish a goal - it does not have the polish of something I'd do professionally. Do not use this code to learn how to do something the right way. For entertainment purposes only.
-
 ## Requirements
 
-* Requires System 7.1 (same as Apple Internet Router). Runs on up to MacOS 9.
-* Compiling requires MPW 3.
+* Requires System 7.1 with MacTCP (same as Apple Internet Router). Runs on up to MacOS 9.
+* Compiling requires MPW 3
 
 ## Modifications for git
 
-In order to commit the source files to git, the following modifications have been made. These will have to be reveresed if you want to compile this code in MPW.
+In order to commit the source files to git, the following modifications have been made. These will have to be reversed if you want to compile this code in MPW.
 
-* Line endings have been converted from CR (Classic Mac) to LF (Unix)
-* Resource files (rsrc) have been run through DeRez to create text files
+* Line endings have been converted from CR (Classic Mac) to LF (Unix).
+* Resource files (rsrc) have been run through DeRez to create flat text files without a resource fork.
+
+## Disclaimer
+
+This is the first Classic Mac application I've written in C. It was a learning experience. It was done over nights and weekends when I had some free time, and the source code is a mess that was written solely to accomplish a goal - it does not have the polish of something I'd do professionally. Do not use this code to learn how to do something the right way. For entertainment purposes only.
