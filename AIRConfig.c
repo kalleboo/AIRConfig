@@ -137,7 +137,9 @@ void main(void)
 	PickOutputFile();
 	WriteOutputFile();
 	
-	EventLoop();					/* call the main event loop */
+	ExitToShell();
+	
+	//EventLoop();					/* call the main event loop */
 }
 
 #pragma segment Main
@@ -306,6 +308,11 @@ void WriteOutputFile(void)
 	UseResFile(outFileRef);
 	
 	existingResId = GetTunnelResId();
+	if (existingResId == -1) {
+		NumToString(existingResId, numStr);
+		AlertMessageUser("\pCould not find existing IPTunnel configuration", numStr);
+	}
+	
 	
 	existingRes = Get1Resource('acfg', existingResId);
 	if (existingRes == NULL) {
@@ -316,13 +323,28 @@ void WriteOutputFile(void)
 	GetResAttrs(existingRes);
 	RemoveResource(existingRes);
 	
-	AddResource(writeData, 'acfg', 16384, existingResName);
+	AddResource(writeData, 'acfg', existingResId, existingResName);
 	
 	if (ResError() == noErr) {
 		WriteResource(writeData);
 	} else {
 		NumToString(ResError(), numStr);
 		AlertMessageUser("\pError adding resource ", numStr);
+	}
+	
+	//Write out comment
+	PtrToHand("\pAIRConfig for GlobalTalk", &writeData, 25);
+	existingRes = Get1Resource('STR ', existingResId);
+	if (existingRes != NULL) {
+		GetResInfo(existingRes, &existingResId, &existingResType, existingResName);
+		GetResAttrs(existingRes);
+		RemoveResource(existingRes);
+	
+		AddResource(writeData, 'STR ', existingResId, existingResName);
+	
+		if (ResError() == noErr) {
+			WriteResource(writeData);
+		}
 	}
 	
 	CloseResFile(outFileRef);
@@ -332,9 +354,47 @@ void WriteOutputFile(void)
 #pragma segment Main
 short GetTunnelResId(void)
 {
-	return 16384;
+	short       resId;
+	ResType     resType;
+	Str255      resName;
 	
+	short	i;
+	short	countRes;
+	Handle	resHnd;
+	char*	resPtr;
+	Boolean done = false;
 	
+	/* 
+	    //Testing return 16384;
+		The AIR file will contain resources for several port configurations,
+		with ID numbers starting with 16384.
+		
+		How to identify which ID number refers to the IP Tunnel configuration.
+		By looking at config files in ResEdit, the following can be found in common:
+		
+		* 'paid' resource starts with 00 01 49
+		* 'port' resource starts with 04
+	 */
+	
+	countRes = Count1Resources('paid');
+	
+	for (i = 1; i <= countRes; i++) {
+		resHnd = Get1IndResource('paid', i);
+		if (resHnd == nil) {
+			continue;
+		}
+		
+		resPtr = *resHnd;
+		if (resPtr[0] == 0x00 && resPtr[1] == 0x01 && resPtr[2] == 0x49) {
+			GetResInfo(resHnd, &resId, &resType, resName);
+			ReleaseResource(resHnd);
+			return resId;
+		}
+		
+		ReleaseResource(resHnd);
+	}
+	
+	return -1;
 }
 
 #pragma segment Main
