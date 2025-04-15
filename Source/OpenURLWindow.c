@@ -1,8 +1,20 @@
+#include <string.h>
 
+#include "Globals.h"
+#include "Defines.h"
 
+extern void ParseURL(Str255 host, Str255 path);
+extern void LoadCurrentInput(void);
+extern void AlertWarningMessage(Str255 message, OSErr errorCode);
+extern void SavePreferences(void);
+extern pascal void DrawDefaultButtonUserItem(WindowPtr theWindow, short itemNo);
+extern Boolean DoCloseWindow( WindowPtr window );
+
+void ShowOpenURLWindow(void);
 void UpdateOpenURLWindow(void);
 void FinishOpenURLWindow(void);
 pascal void OpenURLHintUserItem(WindowPtr theWindow, short itemNo);
+void DoOpenURLWindowEvent(short whichItem);
 
 #define urlwOK			1
 #define urlwCancel		2
@@ -22,14 +34,14 @@ void ShowOpenURLWindow(void) {
 
 	openURLWindowPtr = GetNewDialog(rOpenURLDialog, NULL, (WindowPtr) -1);
 	
-	GetDItem(openURLWindowPtr, urlwHint, &iType, &iHandle, &iRect);
-	SetDItem(openURLWindowPtr, urlwHint, iType, (Handle) &OpenURLHintUserItem, &iRect);
+	GetDialogItem(openURLWindowPtr, urlwHint, &iType, &iHandle, &iRect);
+	SetDialogItem(openURLWindowPtr, urlwHint, iType, (Handle) &OpenURLHintUserItem, &iRect);
 	
-	GetDItem(openURLWindowPtr, urlwDefault, &iType, &iHandle, &iRect);
-	SetDItem(openURLWindowPtr, urlwDefault, iType, (Handle) &DrawDefaultButtonUserItem, &iRect);
+	GetDialogItem(openURLWindowPtr, urlwDefault, &iType, &iHandle, &iRect);
+	SetDialogItem(openURLWindowPtr, urlwDefault, iType, (Handle) &DrawDefaultButtonUserItem, &iRect);
 	
-	GetDItem(openURLWindowPtr, urlwEdit, &iType, &iHandle, &iRect);
-	SetIText(iHandle, gPrefs.inputURL);
+	GetDialogItem(openURLWindowPtr, urlwEdit, &iType, &iHandle, &iRect);
+	SetDialogItemText(iHandle, gPrefs.inputURL);
 	
 	UpdateOpenURLWindow();
 	
@@ -40,7 +52,7 @@ void ShowOpenURLWindow(void) {
 	} while (itemHit != ok && itemHit != cancel);
 	
 	FinishOpenURLWindow();
-	DisposDialog(openURLWindowPtr);
+	DisposeDialog(openURLWindowPtr);
 }
 
 
@@ -60,8 +72,8 @@ void FinishOpenURLWindow(void) {
 	Str255 	host;
 	Str255	path;
 	
-	GetDItem(openURLWindowPtr, urlwEdit, &iType, &iHandle, &iRect);
-	GetIText(iHandle, gPrefs.inputURL);
+	GetDialogItem(openURLWindowPtr, urlwEdit, &iType, &iHandle, &iRect);
+	GetDialogItemText(iHandle, gPrefs.inputURL);
 	
 	ParseURL(host, path);
 	
@@ -109,11 +121,11 @@ pascal void OpenURLHintUserItem(WindowPtr theWindow, short itemNo) {
 	BlockMove(*helpTextRes, *helpText, GetHandleSize(helpTextRes));
 	HUnlock(helpTextRes);
 	
-	GetDItem(theWindow, itemNo, &iType, &iHandle, &iRect);
+	GetDialogItem(theWindow, itemNo, &iType, &iHandle, &iRect);
 	
 	TextFont(geneva);
 	TextSize(10);
-	TextBox(*helpText, strlen(*helpText), &iRect, teJustLeft);
+	TETextBox(*helpText, strlen(*helpText), &iRect, teJustLeft);
 	
 	HUnlock(helpText);
 }

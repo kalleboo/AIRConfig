@@ -1,6 +1,20 @@
+#include "Globals.h"
 
+extern void SetInputString(char *newInputString, unsigned long length);
+extern void SavePreferences(void);
+extern void AlertErrorMessage(Str255 message, OSErr errorCode);
+extern void AbortOutputFile(void);
+extern short GetTunnelResId(void);
+extern void StringInsert(Str255 baseString, Str255 subsString, Str255 resultString);
 
+Boolean IsValidChar(char c);
+Boolean ParseInput(void);
+Boolean IsDelimiter(char c);
 
+Boolean LoadInputFile(void);
+Boolean LoadOutputFile(void);
+Boolean WriteOutputFile(void);
+Handle FormatResource(void);
 
 #pragma segment Main
 Boolean IsValidChar(char c) {
@@ -107,7 +121,7 @@ Boolean LoadInputFile(void)
 	
 	SetInputString(readPointer, readLength);
 	
-	DisposPtr(readPointer);
+	DisposePtr(readPointer);
 	
 	return true;
 }

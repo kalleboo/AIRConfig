@@ -1,9 +1,7 @@
-
 pascal void DrawDefaultButtonUserItem(WindowPtr theWindow, short itemNo);
 void StringInsert(Str255 baseString, Str255 subsString, Str255 resultString);
 pascal void MyDrawRect(WindowPtr theWindow, short itemNo);
 short isKeyPressed(unsigned short k);
-
 
 
 #pragma segment Main
@@ -48,8 +46,8 @@ void StringInsert(Str255 baseString, Str255 subsString, Str255 resultString) {
 	resultString[0] = (char) length;
 	BlockMove(*baseHandle, &resultString[1], length);
 	
-	DisposHandle(baseHandle);
-	DisposHandle(subsHandle);
+	DisposeHandle(baseHandle);
+	DisposeHandle(subsHandle);
 }
 
 
@@ -59,7 +57,7 @@ pascal void MyDrawRect(WindowPtr theWindow, short itemNo) {
 	Handle	iHandle;
 	Rect	iRect;
 	
-	GetDItem(theWindow, itemNo, &iType, &iHandle, &iRect);
+	GetDialogItem(theWindow, itemNo, &iType, &iHandle, &iRect);
 	FrameRect(&iRect);
 }
 
@@ -72,7 +70,7 @@ pascal void DrawDefaultButtonUserItem(WindowPtr theWindow, short itemNo) {
 	Rect		iRect;
 	short		itemX = itemNo;
 	
-	GetDItem(theWindow, ok, &iType, &iHandle, &iRect);
+	GetDialogItem(theWindow, ok, &iType, &iHandle, &iRect);
 	iRect.top = iRect.top - 4;
 	iRect.left = iRect.left - 4;
 	iRect.bottom = iRect.bottom + 4;

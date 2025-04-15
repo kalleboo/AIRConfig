@@ -1,3 +1,6 @@
+#include "Globals.h"
+#include "Errors.h"
+
 #include "compat.h"
 
 #ifdef PROTOS
@@ -20,7 +23,15 @@ Boolean gCancel = false;
 #define kBufSize	16384	/* Size for TCP stream buffer and receive buffer */
 #define kTimeOut	20		/* Timeout for TCP commands */
 
+
+extern void SetInputString(char *newInputString, unsigned long length);
+
+extern void FatalAlertMessage( Str255 message, OSErr errorCode );
+extern void AlertWarningMessage(Str255 message, OSErr errorCode);
+
+
 OSErr FetchHTTP(void);
+Boolean LoadInputURL(void);
 void ParseURL(Str255 host, Str255 path);
 OSErr GetHTTPData(unsigned long stream,Handle *fingerData);
 void FixCRLF(char *data);
@@ -99,9 +110,9 @@ OSErr FetchHTTP(void) {
 	unsigned long stream;
 	char 		httpCmd1[256] = "GET /";
 	char		path[256];
-	char 		httpCmd2[256] = " HTTP/1.1\n\rHost: ";
+	char 		httpCmd2[256] = " HTTP/1.1\r\nHost: ";
 	char		host[256];
-	char 		httpCmd3[256] = "\n\r\n\r";
+	char 		httpCmd3[256] = "\r\n\r\n";
 	Handle 		httpData;
 	Ptr 		httpDataPtr;
 	Ptr			httpBody;
@@ -169,10 +180,10 @@ OSErr FetchHTTP(void) {
 	for (i = 0; i < length; i++) {
 		if (i <= 4) { continue; }
 		
-		if (httpDataPtr[i-3] == '\n'
-			&& httpDataPtr[i-2] == '\r'
-			&& httpDataPtr[i-1] == '\n'
-			&& httpDataPtr[i] == '\r') {
+		if (httpDataPtr[i-3] == '\r'
+			&& httpDataPtr[i-2] == '\n'
+			&& httpDataPtr[i-1] == '\r'
+			&& httpDataPtr[i] == '\n') {
 			
 			httpBody = httpDataPtr + i;
 			
@@ -184,10 +195,12 @@ OSErr FetchHTTP(void) {
 		return -998;
 	}
 	
+	httpBody = httpBody + 1;
+	
 	SetInputString(httpBody, strlen(httpBody));
 	
 	HUnlock(httpData);
-	DisposHandle(httpData);
+	DisposeHandle(httpData);
 		
 	return noErr;
 }

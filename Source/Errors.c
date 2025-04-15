@@ -1,3 +1,5 @@
+#include "Globals.h"
+#include "Defines.h"
 
 void FatalAlertMessage( Str255 message, OSErr errorCode );
 void FatalAlert( void );

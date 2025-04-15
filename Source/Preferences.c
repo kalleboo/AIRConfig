@@ -1,4 +1,5 @@
-
+#include "Globals.h"
+#include "Defines.h"
 
 FSSpec		gPrefsFileSpec;
 

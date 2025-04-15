@@ -79,6 +79,9 @@
 #define kDITop					0x0050
 #define kDILeft					0x0070
 
+
+#define geneva 3
+
 /*	1.01 - kMinHeap - This is the minimum result from the following
 	equation:
 		

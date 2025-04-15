@@ -1,10 +1,18 @@
+#include "Globals.h"
+#include "Defines.h"
+
 
 #define busywBusyText	1
 
 Boolean	gShowingBusyDialog;
 
-void ShowBusyDialog(Str255 message);
 
+extern void ParseURL(Str255 host, Str255 path);
+extern void StringInsert(Str255 baseString, Str255 subsString, Str255 resultString);
+
+void ShowLoadingBusyDialog( void );
+void ShowBusyDialog(Str255 message);
+void HideBusyDialog(void);
 
 void ShowLoadingBusyDialog(void) {
 	OSErr		error;
@@ -42,13 +50,13 @@ void ShowBusyDialog(Str255 message) {
 
 	busyWindowPtr = GetNewDialog(rBusyDialog, NULL, (WindowPtr) -1);
 	
-	GetDItem(busyWindowPtr, busywBusyText, &iType, &iHandle, &iRect);
-	SetIText(iHandle, message);
+	GetDialogItem(busyWindowPtr, busywBusyText, &iType, &iHandle, &iRect);
+	SetDialogItemText(iHandle, message);
 	
 	ShowWindow(busyWindowPtr);
 	gShowingBusyDialog = true;
 	
-	UpdtDialog(busyWindowPtr, busyWindowPtr->visRgn);
+	UpdateDialog(busyWindowPtr, busyWindowPtr->visRgn);
 }
 
 void HideBusyDialog(void) {

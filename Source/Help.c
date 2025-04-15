@@ -1,3 +1,10 @@
+#include <string.h>
+
+#include "Globals.h"
+#include "Defines.h"
+
+extern pascal void DrawDefaultButtonUserItem(WindowPtr theWindow, short itemNo);
+extern void SavePreferences(void);
 
 void ShowHelpDialog();
 pascal void HelpTextUserItem(WindowPtr theWindow, short itemNo);
@@ -19,11 +26,11 @@ void ShowHelpDialog()
 	
 	dialogPtr = GetNewDialog(rHelpDialog, 0, (WindowPtr) - 1);
 	
-	GetDItem(dialogPtr, 3, &iType, &iHandle, &iRect);
-	SetDItem(dialogPtr, 3, iType, (Handle) &HelpTextUserItem, &iRect);
+	GetDialogItem(dialogPtr, 3, &iType, &iHandle, &iRect);
+	SetDialogItem(dialogPtr, 3, iType, (Handle) &HelpTextUserItem, &iRect);
 	
-	GetDItem(dialogPtr, 4, &iType, &iHandle, &iRect);
-	SetDItem(dialogPtr, 4, iType, (Handle) &DrawDefaultButtonUserItem, &iRect);
+	GetDialogItem(dialogPtr, 4, &iType, &iHandle, &iRect);
+	SetDialogItem(dialogPtr, 4, iType, (Handle) &DrawDefaultButtonUserItem, &iRect);
 
 	SetCursor(&qd.arrow);
 	ModalDialog(0, &itemHit);
@@ -55,14 +62,14 @@ pascal void HelpTextUserItem(WindowPtr theWindow, short itemNo) {
 	BlockMove(*helpTextRes, *helpText, GetHandleSize(helpTextRes));
 	HUnlock(helpTextRes);
 	
-	GetDItem(theWindow, itemNo, &iType, &iHandle, &iRect);
+	GetDialogItem(theWindow, itemNo, &iType, &iHandle, &iRect);
 	
 	TextFont(geneva);
 	TextSize(10);
-	TextBox(*helpText, strlen(*helpText), &iRect, teJustLeft);
+	TETextBox(*helpText, strlen(*helpText), &iRect, teJustLeft);
 	
 	HUnlock(helpText);
-	DisposHandle(helpText);
+	DisposeHandle(helpText);
 }
 
 
@@ -80,11 +87,11 @@ void ShowAboutDialog()
 	
 	dialogPtr = GetNewDialog(rAboutDialog, 0, (WindowPtr) - 1);
 	
-	GetDItem(dialogPtr, 4, &iType, &iHandle, &iRect);
-	SetDItem(dialogPtr, 4, iType, (Handle) &AboutTextUserItem, &iRect);
+	GetDialogItem(dialogPtr, 4, &iType, &iHandle, &iRect);
+	SetDialogItem(dialogPtr, 4, iType, (Handle) &AboutTextUserItem, &iRect);
 
-	GetDItem(dialogPtr, 5, &iType, &iHandle, &iRect);
-	SetDItem(dialogPtr, 5, iType, (Handle) &DrawDefaultButtonUserItem, &iRect);
+	GetDialogItem(dialogPtr, 5, &iType, &iHandle, &iRect);
+	SetDialogItem(dialogPtr, 5, iType, (Handle) &DrawDefaultButtonUserItem, &iRect);
 	
 	SetCursor(&qd.arrow);
 	ModalDialog(0, &itemHit);
@@ -113,12 +120,12 @@ pascal void AboutTextUserItem(WindowPtr theWindow, short itemNo) {
 	BlockMove(*helpTextRes, *helpText, GetHandleSize(helpTextRes));
 	HUnlock(helpTextRes);
 	
-	GetDItem(theWindow, itemNo, &iType, &iHandle, &iRect);
+	GetDialogItem(theWindow, itemNo, &iType, &iHandle, &iRect);
 	
 	TextFont(geneva);
 	TextSize(10);
-	TextBox(*helpText, strlen(*helpText), &iRect, teJustLeft);
+	TETextBox(*helpText, strlen(*helpText), &iRect, teJustLeft);
 	
 	HUnlock(helpText);
-	DisposHandle(helpText);
+	DisposeHandle(helpText);
 }

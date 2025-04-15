@@ -8,37 +8,10 @@
 #
 ------------------------------------------------------------------------------*/
 
-#define OLDROUTINENAMES 1
-
-#include <Limits.h>
-#include <Types.h>
-#include <Resources.h>
-#include <QuickDraw.h>
-#include <Fonts.h>
-#include <Events.h>
-#include <Windows.h>
-#include <Menus.h>
-#include <TextEdit.h>
-#include <Dialogs.h>
-#include <Controls.h>
-#include <Menus.h>
-#include <Devices.h>
-#include <ToolUtils.h>
-#include <Memory.h>
-#include <Processes.h>
-#include <SegLoad.h>
-#include <Files.h>
-#include <Folders.h>
-#include <StandardFile.h>
-#include <OSUtils.h>
-#include <DiskInit.h>
-#include <Packages.h>
-#include <Traps.h>
-#include <Balloons.h>
-#include <CursorCtl.h>
 #include <string.h>
+#include <limits.h>
 
-#include "AIRConfig.h"		/* bring in all the #defines for Sample */
+#include "Defines.h"
 
 /* The "g" prefix is used to emphasize that a variable is global. */
 
@@ -55,7 +28,7 @@ Boolean		gHasWaitNextEvent;	/* set up by Initialize */
 Boolean		gInBackground;		/* maintained by Initialize and DoEvent */
 
 /* The qd global has been removed from the libraries */
-QDGlobals qd;
+//QDGlobals qd;
 
 
 #include "Types.c"
@@ -68,9 +41,27 @@ DialogPtr		openURLWindowPtr;
 DialogPtr		busyWindowPtr;
 
 
+extern void SetInputString(char *newInputString, unsigned long length);
+extern Boolean isOptionKeyPressed();
+extern void LoadPreferences(void);
+extern void SavePreferences(void);
+extern void ShowMainWindow(void);
+extern void ShowHelpDialog(void);
+extern void ShowLoadingBusyDialog(void);
+extern void HideBusyDialog(void);
+extern void UpdateMainWindow(void);
+extern void PickInputFile(void);
+extern void ShowAboutDialog(void);
+extern void ShowPrefsWindow(void);
+extern void FatalAlertMessage( Str255 message, OSErr errorCode );
+extern void AlertInfoMessage(Str255 message, OSErr errorCode);
+extern Boolean LoadInputURL(void);
+extern Boolean ParseInput(void);
 
-/* Here are declarations for all of the C routines. In MPW 3.0 and later we can use
-   actual prototypes for parameter type checking. */
+extern void DoMainWindowEvent(short whichItem);
+extern void DoPrefsWindowEvent(short whichItem);
+extern void DoOpenURLWindowEvent(short whichItem);
+
 
 void SetInputString(char *newInputString, unsigned long length);
 void ClearInputString(void);
@@ -84,7 +75,7 @@ void AbortOutputFile(void);
 void EventLoop( void );
 void DoEvent( EventRecord *event );
 void AdjustCursor( Point mouse, RgnHandle region );
-void GetGlobalMouse( Point *mouse );
+pascal void GetGlobalMouse( Point *mouse );
 void DoUpdate( WindowPtr window );
 void DoActivate( WindowPtr window, Boolean becomingActive );
 void DoContentClick( WindowPtr window );
@@ -98,6 +89,19 @@ void ForceEnvirons( void );
 Boolean IsAppWindow( WindowPtr window );
 Boolean IsDAWindow( WindowPtr window );
 Boolean TrapAvailable( short tNumber, TrapType tType );
+Boolean GiveTime(short sleepTime);
+
+
+Boolean LoadInputFile( void );
+Boolean LoadOutputFile( void );
+
+Handle FormatResource(void);
+Boolean WriteOutputFile( void );
+
+short GetTunnelResId(void);
+Boolean IsDelimiter(char c);
+
+
 
 /* this routine would normally be a callback for giving time to background
 	apps */
@@ -112,30 +116,6 @@ Boolean GiveTime(short sleepTime)
 }
 
 
-Boolean LoadInputFile( void );
-Boolean LoadOutputFile( void );
-
-Handle FormatResource(void);
-Boolean WriteOutputFile( void );
-
-short GetTunnelResId(void);
-Boolean IsDelimiter(char c);
-
-
-
-#include "Util.c"
-#include "Errors.c"
-#include "Preferences.c"
-#include "HTTP.c"
-#include "BusyDialog.c";
-#include "OpenURLWindow.c";
-#include "MainWindow.c"
-#include "RouterConfig.c"
-#include "Help.c"
-#include "PreferencesWindow.c";
-
- 
-
 /* Define HiWrd and LoWrd macros for efficiency. */
 #define HiWrd(aLong)	(((aLong) >> 16) & 0xFFFF)
 #define LoWrd(aLong)	((aLong) & 0xFFFF)
@@ -146,7 +126,7 @@ Boolean IsDelimiter(char c);
 #define BotRight(aRect)	(* (Point *) &(aRect).bottom)
 
 
-extern void _DataInit(void);
+//extern void _DataInit(void);
 
 /* This routine is part of the MPW runtime library. This external
    reference to it is done so that we can unload its segment, %A5Init. */
@@ -156,7 +136,7 @@ extern void _DataInit(void);
 void main(void)
 {
 
-	UnloadSeg((Ptr) _DataInit);		/* note that _DataInit must not be in Main! */
+//	UnloadSeg((Ptr) _DataInit);		/* note that _DataInit must not be in Main! */
 	
 	/* 1.01 - call to ForceEnvirons removed */
 	
@@ -283,7 +263,7 @@ void SetInputString(char *newInputString, unsigned long length) {
 void ClearInputString(void) {
 	if (gState.loadedInputString == nil) { return; }
 	
-	DisposHandle(gState.loadedInputString);
+	DisposeHandle(gState.loadedInputString);
 	gState.loadedInputString = nil;
 }
 
@@ -470,7 +450,7 @@ void AdjustCursor(Point	mouse, RgnHandle region)
 
 
 #pragma segment Main
-void GetGlobalMouse(Point *mouse)
+pascal void GetGlobalMouse(Point *mouse)
 {
 	EventRecord	event;
 	
@@ -572,7 +552,7 @@ void AdjustMenus(void)
 
 } /*AdjustMenus*/
 
-
+ 
 #pragma segment Main
 void DoMenuCommand(long	menuResult)
 {

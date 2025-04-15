@@ -2,7 +2,7 @@
 
 ## What is it?
 
-AIRConfig is a utility to write a list of Host IDs to an Apple Internet Router 3.0 config file. It is written in MPW C.
+AIRConfig is a utility to write a list of Host IDs to an Apple Internet Router 3.0 config file. It was originally written in MPW C and was converted to Metrowerks CodeWarrior C.
 
 ## Why would you want to do this?
 
@@ -17,7 +17,7 @@ This was a project to automate that task, so you just give it a text file of add
 ## Requirements
 
 * Requires System 7.1 with MacTCP (same as Apple Internet Router). Runs on up to MacOS 9.
-* Compiling requires MPW 3
+* Compiling requires CodeWarrior 6 (or MPW if you dig through the git tags)
 
 ## Modifications for git
 

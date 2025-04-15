@@ -1,3 +1,17 @@
+#include "Globals.h"
+#include "Defines.h"
+
+extern pascal void MyDrawRect(WindowPtr theWindow, short itemNo);
+extern void StringInsert(Str255 baseString, Str255 subsString, Str255 resultString);
+extern void ParseURL(Str255 host, Str255 path);
+extern void ShowOpenURLWindow(void);
+extern void AbortInputFile(void);
+extern void AbortOutputFile(void);
+extern Boolean WriteOutputFile( void );
+extern void LoadCurrentInput(void);
+extern void LoadCurrentOutput(void);
+extern void AlertInfoMessage(Str255 message, OSErr errorCode);
+extern void SavePreferences(void);
 
 void ShowMainWindow(void);
 void UpdateMainWindow(void);
@@ -39,33 +53,33 @@ void ShowMainWindow(void) {
 
 	mainWindow.ptr = GetNewDialog(130, NULL, (WindowPtr) -1);
 	
-	GetDItem(mainWindow.ptr, mwInputTitle, &iType, &iHandle, &iRect);
-	SetIText(iHandle, "\pHost IDs:");
-	GetDItem(mainWindow.ptr, mwOutputTitle, &iType, &iHandle, &iRect);
-	SetIText(iHandle, "\pRouter Config:");
+	GetDialogItem(mainWindow.ptr, mwInputTitle, &iType, &iHandle, &iRect);
+	SetDialogItemText(iHandle, "\pHost IDs:");
+	GetDialogItem(mainWindow.ptr, mwOutputTitle, &iType, &iHandle, &iRect);
+	SetDialogItemText(iHandle, "\pRouter Config:");
 	
-	GetDItem(mainWindow.ptr, mwInputStatus, &iType, &mainWindow.inputStatus, &iRect);
-	GetDItem(mainWindow.ptr, mwInputButton, &iType, &iHandle, &iRect);
+	GetDialogItem(mainWindow.ptr, mwInputStatus, &iType, &mainWindow.inputStatus, &iRect);
+	GetDialogItem(mainWindow.ptr, mwInputButton, &iType, &iHandle, &iRect);
 	mainWindow.inputButton = (ControlHandle) iHandle;
 	
-	GetDItem(mainWindow.ptr, mwOutputStatus, &iType, &mainWindow.outputStatus, &iRect);
-	GetDItem(mainWindow.ptr, mwOutputButton, &iType, &iHandle, &iRect);
+	GetDialogItem(mainWindow.ptr, mwOutputStatus, &iType, &mainWindow.outputStatus, &iRect);
+	GetDialogItem(mainWindow.ptr, mwOutputButton, &iType, &iHandle, &iRect);
 	mainWindow.outputButton = (ControlHandle) iHandle;
 	
-	GetDItem(mainWindow.ptr, mwDoItButton, &iType, &iHandle, &iRect);
+	GetDialogItem(mainWindow.ptr, mwDoItButton, &iType, &iHandle, &iRect);
 	mainWindow.doItButton = (ControlHandle) iHandle;
 	
-	GetDItem(mainWindow.ptr, mwDivider1, &iType, &iHandle, &iRect);
-	SetDItem(mainWindow.ptr, mwDivider1, iType, (Handle) &MyDrawRect, &iRect);
+	GetDialogItem(mainWindow.ptr, mwDivider1, &iType, &iHandle, &iRect);
+	SetDialogItem(mainWindow.ptr, mwDivider1, iType, (Handle) &MyDrawRect, &iRect);
 	
-	GetDItem(mainWindow.ptr, mwDivider2, &iType, &iHandle, &iRect);
-	SetDItem(mainWindow.ptr, mwDivider2, iType, (Handle) &MyDrawRect, &iRect);
+	GetDialogItem(mainWindow.ptr, mwDivider2, &iType, &iHandle, &iRect);
+	SetDialogItem(mainWindow.ptr, mwDivider2, iType, (Handle) &MyDrawRect, &iRect);
 	
-	GetDItem(mainWindow.ptr, mwInputFilename, &iType, &iHandle, &iRect);
-	SetDItem(mainWindow.ptr, mwInputFilename, iType, (Handle) &DrawFilename, &iRect);
+	GetDialogItem(mainWindow.ptr, mwInputFilename, &iType, &iHandle, &iRect);
+	SetDialogItem(mainWindow.ptr, mwInputFilename, iType, (Handle) &DrawFilename, &iRect);
 	
-	GetDItem(mainWindow.ptr, mwOutputFilename, &iType, &iHandle, &iRect);
-	SetDItem(mainWindow.ptr, mwOutputFilename, iType, (Handle) &DrawFilename, &iRect);
+	GetDialogItem(mainWindow.ptr, mwOutputFilename, &iType, &iHandle, &iRect);
+	SetDialogItem(mainWindow.ptr, mwOutputFilename, iType, (Handle) &DrawFilename, &iRect);
 	
 	UpdateMainWindow();
 	
@@ -82,32 +96,32 @@ void UpdateMainWindow(void) {
 	Str255		numStr;
 	Str255		displayString;
 	
-	GetDItem(mainWindow.ptr, mwInputRadioFile, &iType, &iHandle, &iRect);
-	SetCtlValue((ControlHandle)iHandle, gPrefs.inputSource == kInputSourceFile);
+	GetDialogItem(mainWindow.ptr, mwInputRadioFile, &iType, &iHandle, &iRect);
+	SetControlValue((ControlHandle)iHandle, gPrefs.inputSource == kInputSourceFile);
 	
-	GetDItem(mainWindow.ptr, mwInputRadioInternet, &iType, &iHandle, &iRect);
-	SetCtlValue((ControlHandle)iHandle, gPrefs.inputSource == kInputSourceURL);
+	GetDialogItem(mainWindow.ptr, mwInputRadioInternet, &iType, &iHandle, &iRect);
+	SetControlValue((ControlHandle)iHandle, gPrefs.inputSource == kInputSourceURL);
 	
 	if (gPrefs.inputSource == kInputSourceFile) {
 		if (gState.inputIsValid) {
 			NumToString(gState.totalEntries, numStr);
 			StringInsert("\pLoaded ^0 entries", numStr, displayString);
 		
-			SetIText(mainWindow.inputStatus, displayString);
+			SetDialogItemText(mainWindow.inputStatus, displayString);
 		
-			SetCTitle(mainWindow.inputButton, "\pClose");
-			HideDItem(mainWindow.ptr, mwInputIconNoInternet);
-	 		HideDItem(mainWindow.ptr, mwInputIconInternet);
-			ShowDItem(mainWindow.ptr, mwInputIcon);
-	 		HideDItem(mainWindow.ptr, mwInputIconBlank);
+			SetControlTitle(mainWindow.inputButton, "\pClose");
+			HideDialogItem(mainWindow.ptr, mwInputIconNoInternet);
+	 		HideDialogItem(mainWindow.ptr, mwInputIconInternet);
+			ShowDialogItem(mainWindow.ptr, mwInputIcon);
+	 		HideDialogItem(mainWindow.ptr, mwInputIconBlank);
 		} else {
-			SetIText(mainWindow.inputStatus, "\p");
+			SetDialogItemText(mainWindow.inputStatus, "\p");
 		
-			SetCTitle(mainWindow.inputButton, "\pOpen File...");
-			HideDItem(mainWindow.ptr, mwInputIconNoInternet);
-			HideDItem(mainWindow.ptr, mwInputIconInternet);
-			HideDItem(mainWindow.ptr, mwInputIcon);
-			ShowDItem(mainWindow.ptr, mwInputIconBlank);
+			SetControlTitle(mainWindow.inputButton, "\pOpen File...");
+			HideDialogItem(mainWindow.ptr, mwInputIconNoInternet);
+			HideDialogItem(mainWindow.ptr, mwInputIconInternet);
+			HideDialogItem(mainWindow.ptr, mwInputIcon);
+			ShowDialogItem(mainWindow.ptr, mwInputIconBlank);
 			isReady = false;
 		}
 
@@ -116,37 +130,37 @@ void UpdateMainWindow(void) {
 			NumToString(gState.totalEntries, numStr);
 			StringInsert("\pLoaded ^0 entries", numStr, displayString);
 		
-			SetIText(mainWindow.inputStatus, displayString);
+			SetDialogItemText(mainWindow.inputStatus, displayString);
 		
-			SetCTitle(mainWindow.inputButton, "\pOpen URL...");
-			HideDItem(mainWindow.ptr, mwInputIconNoInternet);
-			ShowDItem(mainWindow.ptr, mwInputIconInternet);
-			HideDItem(mainWindow.ptr, mwInputIcon);
-			HideDItem(mainWindow.ptr, mwInputIconBlank);
+			SetControlTitle(mainWindow.inputButton, "\pOpen URL...");
+			HideDialogItem(mainWindow.ptr, mwInputIconNoInternet);
+			ShowDialogItem(mainWindow.ptr, mwInputIconInternet);
+			HideDialogItem(mainWindow.ptr, mwInputIcon);
+			HideDialogItem(mainWindow.ptr, mwInputIconBlank);
 		} else {
-			SetIText(mainWindow.inputStatus, "\p");
-			SetCTitle(mainWindow.inputButton, "\pOpen URL...");
-			ShowDItem(mainWindow.ptr, mwInputIconNoInternet);
-			HideDItem(mainWindow.ptr, mwInputIconInternet);
-			HideDItem(mainWindow.ptr, mwInputIcon);
-			HideDItem(mainWindow.ptr, mwInputIconBlank);
+			SetDialogItemText(mainWindow.inputStatus, "\p");
+			SetControlTitle(mainWindow.inputButton, "\pOpen URL...");
+			ShowDialogItem(mainWindow.ptr, mwInputIconNoInternet);
+			HideDialogItem(mainWindow.ptr, mwInputIconInternet);
+			HideDialogItem(mainWindow.ptr, mwInputIcon);
+			HideDialogItem(mainWindow.ptr, mwInputIconBlank);
 			isReady = false;
 		}
 	}
 	
 	if (gState.outputIsValid == false) {
-		SetIText(mainWindow.outputStatus, "\p");
-		SetCTitle(mainWindow.outputButton, "\pOpen File...");
-		HideDItem(mainWindow.ptr, mwOutputIcon);
-		ShowDItem(mainWindow.ptr, mwOutputIconBlank);
+		SetDialogItemText(mainWindow.outputStatus, "\p");
+		SetControlTitle(mainWindow.outputButton, "\pOpen File...");
+		HideDialogItem(mainWindow.ptr, mwOutputIcon);
+		ShowDialogItem(mainWindow.ptr, mwOutputIconBlank);
 		isReady = false;
 	} else {
 		StringInsert("\pFound IP tunnel on \"^0\"", gState.resourceName, displayString);
 		
-		SetIText(mainWindow.outputStatus, displayString);
-		SetCTitle(mainWindow.outputButton, "\pClose");
-		ShowDItem(mainWindow.ptr, mwOutputIcon);
-		HideDItem(mainWindow.ptr, mwOutputIconBlank);
+		SetDialogItemText(mainWindow.outputStatus, displayString);
+		SetControlTitle(mainWindow.outputButton, "\pClose");
+		ShowDialogItem(mainWindow.ptr, mwOutputIcon);
+		HideDialogItem(mainWindow.ptr, mwOutputIconBlank);
 	}
 	
 	HiliteControl(mainWindow.doItButton, isReady ? 0 : 255);
@@ -158,7 +172,7 @@ void UpdateMainWindow(void) {
 void RedrawMainWindow(void) {
 
 	//BeginUpdate(mainWindow.ptr);
-	UpdtDialog(mainWindow.ptr, mainWindow.ptr->visRgn);
+	UpdateDialog(mainWindow.ptr, mainWindow.ptr->visRgn);
 	//EndUpdate(mainWindow.ptr);
 }
 
@@ -218,13 +232,13 @@ pascal void DrawFilename(WindowPtr theWindow, short itemNo) {
 		PtrToHand(&defaultName[1], &fileNameHandle, length);
 	}
 	
-	GetDItem(theWindow, itemNo, &iType, &iHandle, &iRect);
+	GetDialogItem(theWindow, itemNo, &iType, &iHandle, &iRect);
 	
 	TextFont(geneva);
 	TextSize(10);
 	
 	HLock(fileNameHandle);
-	TextBox(*fileNameHandle, length, &iRect, teJustCenter);
+	TETextBox(*fileNameHandle, length, &iRect, teJustCenter);
 	HUnlock(fileNameHandle);
 	
 	TextFont(systemFont);
